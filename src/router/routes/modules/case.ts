@@ -21,6 +21,14 @@ const management: AppRouteModule = {
         title: '案件管理',
       },
     },
+    {
+      path: 'detail',
+      name: '案件详情',
+      component: () => import('@/views/case/detail/index.vue'),
+      meta: {
+        title: '案件详情',
+      },
+    },
   ],
 };
 
