@@ -11,19 +11,19 @@
 
     <template #overlay>
       <Menu @click="handleMenuClick">
-        <MenuItem
+        <!-- <MenuItem
           key="doc"
           :text="t('layout.header.dropdownItemDoc')"
           icon="ion:document-text-outline"
           v-if="getShowDoc"
-        />
-        <Menu.Divider v-if="getShowDoc" />
-        <MenuItem
+        /> -->
+        <!-- <Menu.Divider v-if="getShowDoc" /> -->
+        <!-- <MenuItem
           v-if="getShowApi"
           key="api"
           :text="t('layout.header.dropdownChangeApi')"
           icon="ant-design:swap-outlined"
-        />
+        /> -->
         <MenuItem
           v-if="getUseLockPage"
           key="lock"
@@ -39,7 +39,7 @@
     </template>
   </Dropdown>
   <LockAction @register="register" />
-  <ChangeApi @register="registerApi" />
+  <!-- <ChangeApi @register="registerApi" /> -->
 </template>
 <script lang="ts" setup>
   import { Dropdown, Menu } from 'ant-design-vue';

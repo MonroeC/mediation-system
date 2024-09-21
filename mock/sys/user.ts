@@ -5,13 +5,13 @@ export function createFakeUserList() {
   return [
     {
       userId: '1',
-      username: 'vben',
-      realName: 'Vben Admin',
+      username: 'Blues',
+      realName: 'Blues Admin',
       avatar: '',
       desc: 'manager',
       password: '123456',
       token: 'fakeToken1',
-      homePath: '/dashboard/analysis',
+      // homePath: '/dashboard/analysis',
       roles: [
         {
           roleName: 'Super Admin',
@@ -27,7 +27,7 @@ export function createFakeUserList() {
       avatar: '',
       desc: 'tester',
       token: 'fakeToken2',
-      homePath: '/dashboard/workbench',
+      // homePath: '/dashboard/workbench',
       roles: [
         {
           roleName: 'Tester',
