@@ -91,8 +91,7 @@ export const useUserStore = defineStore({
       try {
         const { goHome = true, mode, ...loginParams } = params;
         const data = await loginApi(loginParams, mode);
-        const { token } = data;
-
+        const { accessToken: token } = data;
         // save token
         this.setToken(token);
         return this.afterLoginAction(goHome);
@@ -113,7 +112,7 @@ export const useUserStore = defineStore({
 
         // 动态路由加载（首次）
         if (!permissionStore.isDynamicAddedRoute) {
-          const routes = await permissionStore.buildRoutesAction();
+          const routes = await permissionStore.buildRoutesAction(userInfo?.menus);
           [...routes, PAGE_NOT_FOUND_ROUTE].forEach((route) => {
             router.addRoute(route as unknown as RouteRecordRaw);
           });
@@ -130,8 +129,7 @@ export const useUserStore = defineStore({
       const userInfo = await getUserInfo();
       const { roles = [] } = userInfo;
       if (isArray(roles)) {
-        const roleList = roles.map((item) => item.value) as RoleEnum[];
-        this.setRoleList(roleList);
+        this.setRoleList(roles);
       } else {
         userInfo.roles = [];
         this.setRoleList([]);

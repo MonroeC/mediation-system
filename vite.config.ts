@@ -16,11 +16,11 @@ export default defineApplicationConfig({
     },
     server: {
       proxy: {
-        '/basic-api': {
-          target: 'http://localhost:3000',
+        '/mediation': {
+          target: 'http://120.26.67.238:8080/',
           changeOrigin: true,
           ws: true,
-          rewrite: (path) => path.replace(new RegExp(`^/basic-api`), ''),
+          // rewrite: (path) => path.replace(new RegExp(`^/basic-api`), ''),
           // only https
           // secure: false
         },

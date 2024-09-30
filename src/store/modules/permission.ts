@@ -119,7 +119,7 @@ export const usePermissionStore = defineStore({
     },
 
     // 构建路由
-    async buildRoutesAction(): Promise<AppRouteRecordRaw[]> {
+    async buildRoutesAction(paramRoutes): Promise<AppRouteRecordRaw[]> {
       const { t } = useI18n();
       const userStore = useUserStore();
       const appStore = useAppStoreWithOut();
@@ -237,8 +237,8 @@ export const usePermissionStore = defineStore({
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = [];
           try {
-            await this.changePermissionCode();
-            routeList = (await getMenuList()) as AppRouteRecordRaw[];
+            // await this.changePermissionCode();
+            routeList = paramRoutes ? paramRoutes : ((await getMenuList()) as AppRouteRecordRaw[]);
           } catch (error) {
             console.error(error);
           }
