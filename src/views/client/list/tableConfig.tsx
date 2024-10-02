@@ -1,4 +1,8 @@
 import { FormProps, BasicColumn } from '@/components/Table';
+import { getDictTypeByType } from '@/utils/common';
+import { entrustCustomerQueryTagList } from '@/api/biz/client';
+
+const dictTypeSimpleList = JSON.parse(localStorage.getItem('dictTypeSimpleList') || '[]');
 
 export function getBasicColumns(): BasicColumn[] {
   return [
@@ -73,17 +77,17 @@ export function getBasicColumns(): BasicColumn[] {
   ];
 }
 
-export function getFormConfig(): Partial<FormProps> {
+export function getFormConfig({ refresh }): Partial<FormProps> {
   return {
-    labelWidth: 100,
+    labelWidth: 60,
     showActionButtonGroup: false,
+    autoSubmitOnEnter: true,
     schemas: [
       {
-        field: `name`,
+        field: `nameOrCode`,
         component: 'Input',
         colProps: {
-          xl: 6,
-          xxl: 6,
+          span: 8,
         },
         componentProps: {
           placeholder: '输入名称关键词或编号',
@@ -94,47 +98,62 @@ export function getFormConfig(): Partial<FormProps> {
         component: 'Select',
         label: '类型',
         colProps: {
-          xl: 6,
-          xxl: 6,
+          span: 8,
         },
-        defaultValue: 'all',
         componentProps: {
           placeholder: '请选择',
-          options: [
-            {
-              label: '全部',
-              value: 'all',
-            },
-          ],
+          options: getDictTypeByType('entrust_customer_type'),
+          onChange: (e, v) => {
+            console.log('Select====>:', e, v);
+            refresh();
+          },
         },
       },
       {
-        field: `tag`,
-        component: 'Select',
+        field: `tags`,
+        component: 'ApiSelect',
         label: '标签',
         colProps: {
-          xl: 6,
-          xxl: 6,
+          span: 8,
         },
+        /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          options: [
-            {
-              label: '全部',
-              value: 'all',
-            },
-          ],
+          // options: getDictTypeByType('entrust_customer_type'),
+          api: () => entrustCustomerQueryTagList,
+          showSearch: true,
+          apiSearch: {
+            show: true,
+            searchName: 'name',
+          },
+          params: {
+            tagName: '',
+          },
+          afterFetch: (list) => {
+            return [
+              {
+                id: '1',
+                name: '标签1',
+              },
+              {
+                id: '2',
+                name: '标签2',
+              },
+            ];
+          },
+          resultField: 'list',
+          labelField: 'name',
+          valueField: 'id',
+          immediate: true,
+          mode: 'tags',
+          onChange: () => {
+            refresh();
+          },
+          onOptionsChange: (options) => {
+            console.log('get options', options.length, options);
+          },
         },
       },
-      // {
-      //   field: `field11`,
-      //   label: `Slot示例`,
-      //   slot: 'custom',
-      //   colProps: {
-      //     xl: 12,
-      //     xxl: 8,
-      //   },
-      // },
     ],
   };
 }

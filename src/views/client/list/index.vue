@@ -41,6 +41,8 @@
   import UnFreeze from './components/UnFreeze.vue';
   import AddClient from './components/AddClient.vue';
   import { useModal } from '@/components/Modal';
+  import { entrustCustomerQueryPage } from '@/api/biz/client';
+  import { watch, ref } from 'vue';
 
   /** 冻结 */
   const [registerFreeze, { openModal: openFreeze }] = useModal();
@@ -60,12 +62,23 @@
     openUnFreeze(true, {});
   };
 
+  const count = ref(0);
+  const refresh = () => {
+    count.value++;
+  };
+
   /** 打开添加委案方 */
   const handleOpenAddClient = () => {
     openAddClient(true, {});
   };
-  const [registerTable, { getForm }] = useTable({
-    api: async () => {
+  const [registerTable, { getForm, reload }] = useTable({
+    api: async (params) => {
+      console.log(params, 'params');
+      const { page, ...rest } = params;
+      const res = await entrustCustomerQueryPage({
+        ...rest,
+        pageNo: page,
+      });
       return {
         items: [{ id: 1 }],
         total: 0,
@@ -73,13 +86,21 @@
     },
     columns: getBasicColumns(),
     useSearchForm: true,
-    formConfig: getFormConfig(),
+    formConfig: getFormConfig({ refresh }),
     showTableSetting: false,
     tableSetting: { fullScreen: true },
+    beforeFetch: (params) => {
+      console.log(params, 'params');
+      delete params.count;
+      return params;
+    },
     showIndexColumn: false,
     rowKey: 'id',
     rowSelection: {
       type: 'checkbox',
+    },
+    searchInfo: {
+      count: count.value,
     },
     showSelectionBar: false, // 显示多选状态栏
   });
@@ -87,6 +108,14 @@
   function getFormValues() {
     console.log(getForm().getFieldsValue());
   }
+  // watch用法
+  watch(
+    () => count.value,
+    () => {
+      console.log(213);
+      reload();
+    },
+  );
 
   const handleEdit = (record) => {
     console.log(record);
