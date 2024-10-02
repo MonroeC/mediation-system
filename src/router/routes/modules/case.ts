@@ -6,6 +6,7 @@ const management: AppRouteModule = {
   path: '/case',
   name: '案件管理',
   component: LAYOUT,
+  redirect: '/case/list',
   meta: {
     hideChildrenInMenu: true,
     icon: 'mdi:bookshelf',
