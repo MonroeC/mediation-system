@@ -119,7 +119,7 @@ export function entrustCustomerQueryPage(params: {
   pageSize: number;
 }) {
   return defHttp.get({
-    url: '/mediation/admin-api/biz/entrust-customer-query/page?',
+    url: '/mediation/admin-api/biz/entrust-customer-query/page',
     params,
   });
 }
