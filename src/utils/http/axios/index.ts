@@ -93,6 +93,7 @@ const transform: AxiosTransform = {
       createMessage.error(timeoutMsg);
     }
 
+    if (code === ResultEnum.TIMEOUT) return;
     throw new Error(timeoutMsg || t('sys.api.apiRequestFailed'));
   },
 

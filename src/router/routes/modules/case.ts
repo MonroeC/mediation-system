@@ -32,6 +32,16 @@ const management: AppRouteModule = {
         realPath: '/case/detail',
       },
     },
+    {
+      path: 'add',
+      name: '新增案件',
+      component: () => import('@/views/case/add/index.vue'),
+      meta: {
+        title: '新增案件',
+        currentActiveMenu: '/case',
+        realPath: '/case/add',
+      },
+    },
   ],
 };
 

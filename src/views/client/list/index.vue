@@ -50,7 +50,7 @@
   /** 解冻 */
   const [registerUnFreeze, { openModal: openUnFreeze }] = useModal();
 
-  /** 添加归属方 */
+  /** 添加委案方 */
   const [registerAddClient, { openModal: openAddClient }] = useModal();
 
   /** 打开冻结 */

@@ -15,6 +15,7 @@ import { initAppConfigStore } from '@/logics/initAppConfig';
 import { router, setupRouter } from '@/router';
 import { setupRouterGuard } from '@/router/guard';
 import { setupStore } from '@/store';
+import { getDictTypeSimpleList } from '@/api/sys/common';
 
 import App from './App.vue';
 
@@ -38,6 +39,8 @@ async function bootstrap() {
   // Asynchronous case: language files may be obtained from the server side
   // 异步案例：语言文件可能从服务器端获取
   await setupI18n(app);
+  const res = await getDictTypeSimpleList();
+  localStorage.setItem('dictTypeSimpleList', JSON.stringify(res));
 
   // Configure routing
   // 配置路由

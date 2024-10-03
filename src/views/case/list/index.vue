@@ -1,23 +1,17 @@
 <template>
-  <Card class="search-card">
-    <Space>
-      <InputSearch :placeholder="searchConfig.searchInput.placeholder" />
-      <Select :options="searchConfig.options" defaultValue="myCase" />
-      <RadioGroup
-        v-model:value="buttonsValue"
-        @change="
-          (e) => {
-            reloadTable({ type: e.target.value });
-          }
-        "
-      >
-        <RadioButton v-for="item in searchConfig.buttons" :value="item.value" :key="item.value">{{
-          item.label
-        }}</RadioButton>
-      </RadioGroup>
-    </Space>
-  </Card>
   <BasicTable @register="registerTable">
+    <template #toolbar>
+      <Space>
+        <Button type="primary" @click="handleAdd">+ 新建案件</Button>
+        <Button type="primary" @click="handleImport">+ 导入案件</Button>
+        <Button @click="handleOpenCaseConfirm">案件确认</Button>
+        <Button @click="handleOpenCaseAssign">案件指派</Button>
+        <Button @click="handleOpenCaseExtension">申请展期</Button>
+        <Button @click="handleImport">打标</Button>
+        <Button @click="handleOpenFreeze">冻结</Button>
+        <Button @click="handleOpenCaseClose">结案</Button>
+      </Space>
+    </template>
     <template #bodyCell="{ column, record }">
       <template v-if="column.dataIndex === 'action'">
         <TableAction
@@ -36,47 +30,120 @@
       </template>
     </template>
   </BasicTable>
+
+  <CaseConfirm @register="registerCaseConfirm" />
+  <CaseAssign @register="registerCaseAssign" />
+  <CaseClose @register="registerCaseClose" />
+  <ApplyExtension @register="registerApplyExtension" />
+  <Freeze @register="registerFreeze" />
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue';
-  import { Card, Space, InputSearch, Select, RadioGroup, RadioButton } from 'ant-design-vue';
+  import { ref, watch } from 'vue';
+  import { Space, Button } from 'ant-design-vue';
   import { BasicTable, useTable, TableAction } from '@/components/Table';
-  import { getSearch, getColumns } from './constants/table';
+  import { getColumns, getFormConfig } from './constants/table';
+  import { useModal } from '@/components/Modal';
+  import CaseConfirm from '/@/views/case/list/components/CaseConfirm.vue';
+  import CaseAssign from '/@/views/case/list/components/CaseAssign.vue';
+  import CaseClose from '/@/views/case/list/components/CaseClose.vue';
+  import Freeze from '/@/views/client/list/components/Freeze.vue';
+  import ApplyExtension from '/@/views/case/list/components/ApplyExtension.vue';
+  import { lawsuitQueryPage } from '@/api/biz/case';
+  import { useGo } from '@/hooks/web/usePage';
 
-  const buttonsValue = ref('all');
+  const go = useGo();
+
+  const count = ref(0);
+  const refresh = () => {
+    count.value++;
+  };
 
   const [registerTable, { reload }] = useTable({
-    // HACK: 发起请求
-    api: (params) => {
-      console.log(params);
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            items: Array.from({ length: 200 }).map((_, index) => ({
-              id: index,
-              name: `name-${index}`,
-            })),
-            total: 200,
-          });
-        }, 1000);
+    api: async (params) => {
+      console.log(params, 'params');
+      const { page, ...rest } = params;
+      const res = await lawsuitQueryPage({
+        ...rest,
+        pageNo: page,
       });
+      console.log(res, 'res');
+      return {
+        items: res?.list,
+        total: res?.total,
+      };
     },
     columns: getColumns(),
-    bordered: true,
+    useSearchForm: true,
+    formConfig: getFormConfig({ refresh }),
+    showTableSetting: false,
+    tableSetting: { fullScreen: true },
+    beforeFetch: (params) => {
+      console.log(params, 'params');
+      delete params.count;
+      return params;
+    },
+    showIndexColumn: false,
     rowKey: 'id',
     rowSelection: {
       type: 'checkbox',
     },
-    showSelectionBar: true, // 显示多选状态栏
-    showIndexColumn: false, // 显示序号列
+    searchInfo: {
+      count: count.value,
+    },
+    showSelectionBar: false, // 显示多选状态栏
   });
 
-  const searchConfig = getSearch();
+  watch(
+    () => count.value,
+    () => {
+      reload();
+    },
+  );
 
-  const reloadTable = (params) => {
-    console.log('reloadTable', params);
-    reload(params);
+  /** 案件确认 */
+  const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();
+  /** 案件指派 */
+  const [registerCaseAssign, { openModal: openCaseAssign }] = useModal();
+  /** 结案 */
+  const [registerCaseClose, { openModal: openCaseClose }] = useModal();
+  /** 展期 */
+  const [registerApplyExtension, { openModal: openApplyExtension }] = useModal();
+
+  /** 冻结 */
+  const [registerFreeze, { openModal: openFreeze }] = useModal();
+
+  /** 打开案件确认 */
+  const handleOpenCaseConfirm = () => {
+    openCaseConfirm(true, {});
+  };
+
+  /** 打开案件指派 */
+  const handleOpenCaseAssign = () => {
+    openCaseAssign(true, {});
+  };
+
+  /** 打开结案 */
+  const handleOpenCaseClose = () => {
+    openCaseClose(true, {});
+  };
+
+  /** 打开展期 */
+  const handleOpenCaseExtension = () => {
+    openApplyExtension(true, {});
+  };
+
+  /** 打开冻结 */
+  const handleOpenFreeze = () => {
+    openFreeze(true, {});
+  };
+
+  const handleAdd = () => {
+    console.log('handleAdd');
+    go(`/case/add`);
+  };
+  const handleImport = () => {
+    console.log('handleImport');
   };
 </script>
 
