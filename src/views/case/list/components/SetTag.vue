@@ -45,7 +45,7 @@
   const props = defineProps({
     ok: { type: Function },
   });
-  const [registerForm] = useForm({
+  const [registerForm, { getFieldsValue }] = useForm({
     labelWidth: 110,
     schemas,
     showActionButtonGroup: false,
@@ -69,8 +69,8 @@
       return;
     }
     await lawsuitSetTag({
-      lawsuitIdList: records.value?.map((one) => one.id),
-      tagList: registerForm.getFieldsValue().tagList,
+      lawsuitId: records.value?.map((one) => one.id),
+      tagList: getFieldsValue().tagList,
     });
     message.success('打标成功');
     closeModal?.();

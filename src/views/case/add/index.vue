@@ -54,7 +54,7 @@
   const caseFormRef = ref(null);
   const clientFormRef = ref(null);
   const partiesFormRef = ref(null);
-  const { refreshPage, close } = useTabs();
+  const { refreshPage, close, setTitle } = useTabs();
   const detail = ref({});
 
   const baseInfo = computed(() => ({
@@ -68,6 +68,7 @@
   // 获取链接上的 id 参数
   onMounted(async () => {
     if (!computedQuery.value.id) return;
+    setTitle('编辑案件');
     const res = await lawsuitDetail({ lawsuitId: computedQuery.value.id });
     detail.value = res;
   });

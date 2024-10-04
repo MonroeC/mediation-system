@@ -16,11 +16,14 @@
           >
           <Button @click="() => handleOpenSetTag(records)" :disabled="!records.length">打标</Button>
           <Button @click="handleOpenFreeze" :disabled="!records.length">冻结</Button>
+          <Button @click="() => handleOpenCaseClose(records)" :disabled="!records.length"
+            >结案</Button
+          >
         </Space>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
-          <TableAction :actions="actions(record)" />
+          <TableAction :actions="actions(record)" style="width: 200px" />
         </template>
       </template>
     </BasicTable>
@@ -70,7 +73,7 @@
   // 下面的方法有错误，麻烦帮忙修改一下
   const actions = computed(() => (record) => {
     const finallyButton = record.buttonList.filter((item) =>
-      userInfo.value.permissions.includes(item.permission),
+      userInfo.value?.permissions?.includes(item.permission),
     );
     return finallyButton.map((item) => ({
       label: item.name,
@@ -119,8 +122,8 @@
   };
 
   /** 打开结案 */
-  const handleOpenCaseClose = () => {
-    openCaseClose(true, {});
+  const handleOpenCaseClose = (records) => {
+    openCaseClose(true, records);
   };
 
   /** 打开展期 */
@@ -135,7 +138,7 @@
   };
 
   /** 打开打标 */
-  const handleOpenSetTag = () => {
+  const handleOpenSetTag = (records) => {
     openSetTag(true, records);
   };
 
@@ -193,8 +196,9 @@
     },
     columns: getColumns({
       handleGoDetail,
-      permissions: userInfo.value.permissions,
+      permissions: userInfo?.value?.permissions,
       handleAction,
+      handleOpenSetTag,
     }),
     useSearchForm: true,
     formConfig: formConfig.value,

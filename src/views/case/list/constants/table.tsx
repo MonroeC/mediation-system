@@ -5,10 +5,10 @@ import { entrustCustomerQuerySimpleListByKeyword, getPartiesSimpleList } from '@
 
 export const getColumns: ({
   handleGoDetail,
-  handleSetTagVisible,
+  handleOpenSetTag,
   permissions,
   handleAction,
-}) => BasicColumn[] = ({ handleGoDetail, handleSetTagVisible }) => {
+}) => BasicColumn[] = ({ handleGoDetail, handleOpenSetTag }) => {
   return [
     {
       title: '案件名称',
@@ -47,7 +47,7 @@ export const getColumns: ({
           <Space>
             {record.tagList?.map((item) => <Tag key={item}>{item}</Tag>)}
             {record.buttonList.find((item) => item.code === 'lawsuit_set_tag') && (
-              <Tag onClick={() => handleSetTagVisible(record)}>+打标</Tag>
+              <Tag onClick={() => handleOpenSetTag([record])}>+打标</Tag>
             )}
           </Space>
         );
@@ -200,8 +200,9 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
           span: 14,
         },
         labelWidth: 10,
+        defaultValue: 'all',
         componentProps: {
-          options: [{ label: '全部', value: '' }].concat(getDictTypeByType('lawsuit_status')),
+          options: [{ label: '全部', value: 'all' }].concat(getDictTypeByType('lawsuit_status')),
           onChange: () => {
             refresh();
           },
@@ -339,11 +340,12 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
       {
         field: `showFreeze`,
         component: 'Checkbox',
-        label: '显示已冻结',
+        label: ' ',
         colProps: {
           span: 6,
         },
         defaultValue: false,
+        renderComponentContent: '显示已冻结',
         componentProps: {
           onChange: () => {
             refresh();

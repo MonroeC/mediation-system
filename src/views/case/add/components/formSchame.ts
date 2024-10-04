@@ -482,7 +482,7 @@ const colProps = {
   md: 12,
   xxl: 6,
 };
-
+console.log(getDictTypeByType('system_user_sex'), 'getDictTypeByType');
 /** 当事人信息 */
 export const partiesFormSchema: any = [
   // {

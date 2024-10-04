@@ -72,9 +72,9 @@
   );
 
   /** 代理人是否开启 */
-  const entrustAgentEnabled = ref(true);
+  const entrustAgentEnabled = ref(false);
   /** 被送达人是否开启 */
-  const entrustSenderEnabled = ref(true);
+  const entrustSenderEnabled = ref(false);
 
   /** 委案方信息 */
   const [

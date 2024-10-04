@@ -19,8 +19,11 @@
   import { RESULT } from '/@/views/case/list/constants';
   import { lawsuitApplyClose } from '@/api/biz/case';
   import { message } from 'ant-design-vue';
+  import moment from 'moment';
 
   const stage = ref('');
+
+  const records = ref([]);
 
   /** 更改分期 */
   const handleChangeStage = (v) => {
@@ -29,7 +32,6 @@
       Array.from({ length: stage.value }).forEach((one, index) => {
         deleteFields.push(`payDate${index + 1}`, `payAmount${index + 1}`);
       });
-      console.log(deleteFields, 999);
       removeSchemaByFieldGroup(deleteFields);
     }
 
@@ -167,7 +169,7 @@
       colProps: {
         span: 24,
       },
-      required: true,
+      required: false,
       componentProps: {
         options: [
           { label: 2, value: 2 },
@@ -234,11 +236,7 @@
       validateFields,
       appendSchemaByField: appendSchemaByFieldGroup,
       removeSchemaByField: removeSchemaByFieldGroup,
-      setFieldsValue,
-      getFieldsValue,
       updateSchema,
-      addSchema,
-      removeSchema,
     },
   ] = useForm({
     labelWidth: 110,
@@ -249,17 +247,17 @@
     },
   });
 
-  const [register] = useModalInner((data) => {
+  const [register, { closeModal }] = useModalInner((data) => {
     data && onDataReceive(data);
   });
 
   function onDataReceive(data) {
     console.log('Data Received', data);
+    records.value = data;
   }
 
   const handleOk = async () => {
     const values = await validateFields();
-    console.log(values, 'values');
 
     let params: any = {};
 
@@ -268,7 +266,7 @@
       params = {
         closeType: values.closeType,
         payAmount: values.payAmount,
-        payDate: values.payDate,
+        payDate: values.payDate ? moment(values.payDate).format('YYYY-MM-DD') : '',
         attachmentList: values.attachmentList,
         remark: values.remark,
       };
@@ -278,7 +276,9 @@
       let stageList = [];
       Array.from({ length: values.stage }).forEach((one, index) => {
         stageList.push({
-          payDate: values[`payDate${index + 1}`],
+          payDate: values[`payDate${index + 1}`]
+            ? moment(values[`payDate${index + 1}`]).format('YYYY-MM-DD')
+            : '',
           payAmount: values[`payAmount${index + 1}`],
           stageNum: index + 1,
         });
@@ -296,9 +296,12 @@
         remark: values.remark,
       };
     }
-    console.log(params, 'params');
-    await lawsuitApplyClose(params);
+    await lawsuitApplyClose({
+      lawsuitIdList: records.value.map((item) => item.id),
+      ...params,
+    });
     message.success('申请结案成功');
+    closeModal?.();
     props?.ok?.();
   };
 </script>

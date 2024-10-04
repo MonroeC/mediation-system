@@ -5,7 +5,10 @@
  * @returns
  */
 export const getDictTypeByType = (type: string) => {
-  return JSON.parse(localStorage.getItem('dictTypeSimpleList') || '[]')
-    ?.filter((item) => item.dictType === type)
-    ?.map((item) => ({ label: item.label, value: item.value }));
+  const dictTypeList = localStorage.getItem('dictTypeSimpleList');
+  return dictTypeList === 'undefined' || !dictTypeList
+    ? []
+    : JSON.parse(localStorage.getItem('dictTypeSimpleList') || '[]')
+        ?.filter((item) => item.dictType === type)
+        ?.map((item) => ({ label: item.label, value: item.value }));
 };
