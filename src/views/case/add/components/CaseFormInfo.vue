@@ -15,14 +15,16 @@
         <Switch @change="(v) => (isCourtInfo = v)" :checked="isCourtInfo" />
       </Flex>
     </template>
-    <BasicForm @register="registerCourtInfoForm" />
+    <BasicForm @register="registerCourtInfoForm" v-show="isCourtInfo" />
   </CollapseContainer>
 </template>
 <script lang="ts" setup>
   import { BasicForm, useForm } from '@/components/Form';
   import { CollapseContainer } from '@/components/Container';
   import { Switch, Flex } from 'ant-design-vue';
-  import { ref } from 'vue';
+  import { ref, watch, defineProps } from 'vue';
+  import moment from 'moment';
+
   import {
     baseInfoFormSchema,
     caseInfoFormSchema,
@@ -45,10 +47,84 @@
 
   const isCourtInfo = ref(true);
 
+  const props = defineProps({
+    data: { type: Object },
+    editMode: { type: String },
+  });
+
+  watch(
+    () => props.data,
+    (val) => {
+      if (val) {
+        const { lawsuitInfo, baseInfo, subjectInfo, courtInfo } = val ?? {};
+        const { entrustDate, entrustDeadline, ...rest } = baseInfo ?? {};
+        baseInfoSetFieldsValue({
+          ...rest,
+          entrustDate: entrustDate ? moment(entrustDate) : undefined,
+          entrustDeadline: entrustDeadline ? moment(entrustDeadline) : undefined,
+        });
+        courtInfo?.list?.forEach((item) => {
+          courtInfoSetFieldsValue({
+            [item.label]: item.value,
+          });
+        });
+        isCourtInfo.value = courtInfo?.enabled;
+
+        lawsuitInfo?.list?.forEach((item) => {
+          if (['逾期日期', '开卡日期', '激活日期', '用印时间'].includes(item.label)) {
+            item.value = item.value ? moment(item.value) : undefined;
+          }
+          setFieldsValue({
+            [item.label]: item.value,
+          });
+        });
+
+        subjectInfo?.list?.forEach((item) => {
+          if (item.label === '开卡日期') {
+            item.value = item.value ? moment(item.value) : undefined;
+          }
+          subjectInfoSetFieldsValue({
+            [item.label]: item.value,
+          });
+        });
+      }
+    },
+  );
+
+  watch(
+    () => props.editMode,
+    (val) => {
+      if (val === 'scope1') {
+        const arr = [
+          'entrustDate',
+          'entrustDeadline',
+          'lawsuitType',
+          'arrearsTotal',
+          'mediationCommission',
+          'mediationIdentity',
+          'repaymentLowestDesc',
+          'repaymentLongnum',
+        ];
+        arr.forEach((one) => {
+          baseInfoUpdateSchema({
+            field: one,
+            componentProps: {
+              disabled: true,
+            },
+          });
+        });
+      }
+    },
+  );
+
   /** 基础信息 */
   const [
     registerBaseInfoForm,
-    { validateFields: baseInfoValidateFields, setFieldsValue: baseInfoSetFieldsValue },
+    {
+      validateFields: baseInfoValidateFields,
+      setFieldsValue: baseInfoSetFieldsValue,
+      updateSchema: baseInfoUpdateSchema,
+    },
   ] = useForm({
     ...formCommonConfig,
     schemas: baseInfoFormSchema,
@@ -87,6 +163,7 @@
       lawsuitInfo,
       subjectInfo,
       courtInfo,
+      enabled: isCourtInfo.value,
     });
   };
   defineExpose({ getFormData });

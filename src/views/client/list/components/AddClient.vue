@@ -14,7 +14,7 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
   import { getDictTypeByType } from '@/utils/common';
@@ -151,9 +151,18 @@
 
   const props = defineProps({
     recordData: { type: Object },
+    cancel: { type: Function },
   });
 
-  const [registerForm, { validateFields }] = useForm({
+  watch(
+    () => props.recordData,
+    (val) => {
+      console.log(val, 'recordData');
+      setFieldsValue(val);
+    },
+  );
+
+  const [registerForm, { validateFields, resetFields, setFieldsValue }] = useForm({
     labelWidth: 150,
     schemas,
     colon: true,
@@ -164,7 +173,8 @@
     },
   });
 
-  const [register] = useModalInner((data) => {
+  const [register, { closeModal }] = useModalInner((data) => {
+    console.log(data, 'data');
     data && onDataReceive(data);
   });
 
@@ -189,11 +199,13 @@
     // v && props.userData && nextTick(() => onDataReceive(props.userData));
   }
 
+  console.log(props, 'props');
   const handleOk = () => {
     validateFields().then((res) => {
-      console.log(res, 888);
-      entrustCustomerCreate(res).then((res) => {
+      entrustCustomerCreate(res).then(() => {
         message.success('新增成功');
+        resetFields();
+        closeModal?.();
       });
     });
     console.log(formData, 'modelRef.value');

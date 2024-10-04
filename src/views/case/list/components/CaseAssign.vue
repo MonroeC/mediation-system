@@ -4,51 +4,68 @@
     @register="register"
     title="案件指派"
     destroyOnClose
-    @visible-change="handleVisibleChange"
     width="600px"
     @ok="handleOk"
   >
     <div class="pt-3px pr-3px">
-      <BasicForm @register="registerForm" :layout="'vertical'">
-        <template #localSearch="{ model, field }">
-          <ApiSelect
-            :api="optionsListApi"
-            showSearch
-            allowClear
-            v-model:value="model[field]"
-            optionFilterProp="label"
-            labelField="label"
-            valueField="value"
-            @change="handleSelectChange"
-          />
-        </template>
-      </BasicForm>
+      <BasicForm @register="registerForm" :layout="'vertical'" />
     </div>
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { ref, nextTick } from 'vue';
+  import { ref } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
-  import { BasicForm, FormSchema, useForm, ApiSelect } from '@/components/Form';
+  import { BasicForm, FormSchema, useForm } from '@/components/Form';
+  import { listSimpleUserByNickname } from '@/api/sys/common';
+  import { message } from 'ant-design-vue';
+  import { lawsuitAssign } from '@/api/biz/case';
 
-  const formData = ref({});
+  const records = ref([]);
+
+  const props = defineProps({
+    ok: { type: Function },
+  });
+
   const schemas: FormSchema[] = [
     {
-      field: 'field2',
-      slot: 'localSearch',
+      field: `mediators`,
+      component: 'ApiSelect',
       label: '指派调解员',
       colProps: {
         span: 24,
       },
       required: true,
-      defaultValue: '',
+      /** 远程加载数据 */
+      componentProps: {
+        placeholder: '请选择',
+        api: listSimpleUserByNickname,
+        showSearch: true,
+        apiSearch: {
+          show: true,
+          searchName: 'name',
+        },
+        params: {
+          nickname: '',
+        },
+        afterFetch: (list) => {
+          console.log(list, 'list');
+        },
+        resultField: 'list',
+        labelField: 'nickname',
+        valueField: 'id',
+        immediate: true,
+        onChange: () => {},
+        optionLabelRender: ({ nickname }) => {
+          return `<div>
+                <span>${nickname}</span>
+                <span> - 自定义内容</span>
+              </div>`;
+        },
+      },
     },
   ];
 
-  const props = defineProps({
-    userData: { type: Object },
-  });
-  const [registerForm, { validateFields, setFieldsValue }] = useForm({
+  const [registerForm, { validateFields }] = useForm({
     labelWidth: 110,
     schemas,
     showActionButtonGroup: false,
@@ -57,48 +74,24 @@
     },
   });
 
-  const [register] = useModalInner((data) => {
+  const [register, { closeModal }] = useModalInner((data) => {
     data && onDataReceive(data);
   });
 
   function onDataReceive(data) {
-    console.log('Data Received', data);
-    // 方式1;
-    // setFieldsValue({
-    //   field2: data.data,
-    //   field1: data.info,
-    // });
-
-    // // 方式2
-    // modelRef.value = { field2: data.data, field1: data.info };
-
-    // setProps({
-    //   model:{ field2: data.data, field1: data.info }
-    // })
+    records.value = data;
   }
 
-  function handleVisibleChange(v) {
-    console.log(v, 888);
-    // v && props.userData && nextTick(() => onDataReceive(props.userData));
-  }
-
-  /** 获取调解人接口 */
-  const optionsListApi = async () => {
-    return [
-      { label: '张三', value: '1' },
-      { label: '李四', value: '2' },
-    ];
-  };
-
-  const handleSelectChange = (v) => {
-    console.log(v, 'handleSelectChange');
-    setFieldsValue({ field2: v });
-  };
-
-  const handleOk = () => {
-    validateFields().then((res) => {
-      console.log(res, 888);
+  const handleOk = async () => {
+    const values = await validateFields();
+    const res = await lawsuitAssign({
+      mediators: values.mediators ? [values.mediators] : [],
+      lawsuitIdList: records.value.map((item) => item.id),
     });
-    console.log(formData, 'modelRef.value');
+    if (res) {
+      message.success('案件指派成功');
+      closeModal?.();
+      props?.ok?.();
+    }
   };
 </script>

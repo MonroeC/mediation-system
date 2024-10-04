@@ -1,45 +1,41 @@
 <template>
-  <BasicTable @register="registerTable">
-    <template #toolbar>
-      <Space>
-        <Button type="primary" @click="handleAdd">+ 新建案件</Button>
-        <Button type="primary" @click="handleImport">+ 导入案件</Button>
-        <Button @click="handleOpenCaseConfirm">案件确认</Button>
-        <Button @click="handleOpenCaseAssign">案件指派</Button>
-        <Button @click="handleOpenCaseExtension">申请展期</Button>
-        <Button @click="handleImport">打标</Button>
-        <Button @click="handleOpenFreeze">冻结</Button>
-        <Button @click="handleOpenCaseClose">结案</Button>
-      </Space>
-    </template>
-    <template #bodyCell="{ column, record }">
-      <template v-if="column.dataIndex === 'action'">
-        <TableAction
-          :actions="[
-            {
-              label: '编辑',
-              // auth: 'other', // 根据权限控制是否显示: 无权限，不显示
-            },
-            {
-              label: '删除',
-              icon: 'ic:outline-delete-outline',
-              // auth: 'super', // 根据权限控制是否显示: 有权限，会显示
-            },
-          ]"
-        />
+  <div>
+    <BasicTable @register="registerTable">
+      <template #toolbar>
+        <Space>
+          <Button type="primary" @click="handleAdd">+ 新建案件</Button>
+          <Button type="primary" @click="handleImport">+ 导入案件</Button>
+          <Button @click="() => handleOpenCaseConfirm(records)" :disabled="!records.length"
+            >案件确认</Button
+          >
+          <Button @click="() => handleOpenCaseAssign(records)" :disabled="!records.length"
+            >案件指派</Button
+          >
+          <Button @click="() => handleOpenCaseExtension(records)" :disabled="!records.length"
+            >申请展期</Button
+          >
+          <Button @click="() => handleOpenSetTag(records)" :disabled="!records.length">打标</Button>
+          <Button @click="handleOpenFreeze" :disabled="!records.length">冻结</Button>
+        </Space>
       </template>
-    </template>
-  </BasicTable>
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'action'">
+          <TableAction :actions="actions(record)" />
+        </template>
+      </template>
+    </BasicTable>
 
-  <CaseConfirm @register="registerCaseConfirm" />
-  <CaseAssign @register="registerCaseAssign" />
-  <CaseClose @register="registerCaseClose" />
-  <ApplyExtension @register="registerApplyExtension" />
-  <Freeze @register="registerFreeze" />
+    <CaseConfirm @register="registerCaseConfirm" :ok="refresh" />
+    <CaseAssign @register="registerCaseAssign" :ok="refresh" />
+    <CaseClose @register="registerCaseClose" :ok="refresh" />
+    <ApplyExtension @register="registerApplyExtension" :ok="refresh" />
+    <Freeze @register="registerFreeze" :ok="refresh" />
+    <SetTag @register="registerSetTag" :ok="refresh" />
+  </div>
 </template>
 
 <script lang="ts" setup>
-  import { ref, watch } from 'vue';
+  import { ref, watch, computed, onMounted, reactive, unref } from 'vue';
   import { Space, Button } from 'ant-design-vue';
   import { BasicTable, useTable, TableAction } from '@/components/Table';
   import { getColumns, getFormConfig } from './constants/table';
@@ -47,59 +43,52 @@
   import CaseConfirm from '/@/views/case/list/components/CaseConfirm.vue';
   import CaseAssign from '/@/views/case/list/components/CaseAssign.vue';
   import CaseClose from '/@/views/case/list/components/CaseClose.vue';
-  import Freeze from '/@/views/client/list/components/Freeze.vue';
+  import Freeze from '/@/views/case/list/components/Freeze.vue';
+  import SetTag from '/@/views/case/list/components/SetTag.vue';
   import ApplyExtension from '/@/views/case/list/components/ApplyExtension.vue';
   import { lawsuitQueryPage } from '@/api/biz/case';
   import { useGo } from '@/hooks/web/usePage';
+  import { useUserStore } from '@/store/modules/user';
+  import { listSimpleUserByNickname } from '@/api/sys/common';
 
   const go = useGo();
+  const records = ref([]);
+  const simpleUserList = reactive({
+    list: [],
+  });
 
   const count = ref(0);
   const refresh = () => {
     count.value++;
   };
+  const userStore = useUserStore();
 
-  const [registerTable, { reload }] = useTable({
-    api: async (params) => {
-      console.log(params, 'params');
-      const { page, ...rest } = params;
-      const res = await lawsuitQueryPage({
-        ...rest,
-        pageNo: page,
-      });
-      console.log(res, 'res');
-      return {
-        items: res?.list,
-        total: res?.total,
-      };
-    },
-    columns: getColumns(),
-    useSearchForm: true,
-    formConfig: getFormConfig({ refresh }),
-    showTableSetting: false,
-    tableSetting: { fullScreen: true },
-    beforeFetch: (params) => {
-      console.log(params, 'params');
-      delete params.count;
-      return params;
-    },
-    showIndexColumn: false,
-    rowKey: 'id',
-    rowSelection: {
-      type: 'checkbox',
-    },
-    searchInfo: {
-      count: count.value,
-    },
-    showSelectionBar: false, // 显示多选状态栏
+  const userInfo = computed(() => {
+    return userStore.getUserInfo || {};
   });
 
-  watch(
-    () => count.value,
-    () => {
-      reload();
-    },
-  );
+  // 下面的方法有错误，麻烦帮忙修改一下
+  const actions = computed(() => (record) => {
+    const finallyButton = record.buttonList.filter((item) =>
+      userInfo.value.permissions.includes(item.permission),
+    );
+    return finallyButton.map((item) => ({
+      label: item.name,
+      onClick: () => handleAction(item, record),
+    }));
+  });
+
+  onMounted(async () => {
+    const res = await listSimpleUserByNickname({
+      nickname: '',
+    });
+    simpleUserList.list = res?.map((item) => {
+      return {
+        label: item.nickname,
+        value: item.id,
+      };
+    });
+  });
 
   /** 案件确认 */
   const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();
@@ -113,14 +102,20 @@
   /** 冻结 */
   const [registerFreeze, { openModal: openFreeze }] = useModal();
 
+  /** 打标 */
+  const [registerSetTag, { openModal: openSetTag }] = useModal();
+
   /** 打开案件确认 */
-  const handleOpenCaseConfirm = () => {
-    openCaseConfirm(true, {});
+  const handleOpenCaseConfirm = (records) => {
+    // 过滤出待确认的数据进行确认
+    const finallyRecords = records?.filter((one) => one.status === 'wait_confirm');
+    openCaseConfirm(true, finallyRecords);
   };
 
   /** 打开案件指派 */
-  const handleOpenCaseAssign = () => {
-    openCaseAssign(true, {});
+  const handleOpenCaseAssign = (records) => {
+    const finallyRecords = records?.filter((one) => one.status === 'wait_assign');
+    openCaseAssign(true, finallyRecords);
   };
 
   /** 打开结案 */
@@ -129,19 +124,108 @@
   };
 
   /** 打开展期 */
-  const handleOpenCaseExtension = () => {
-    openApplyExtension(true, {});
+  const handleOpenCaseExtension = (records) => {
+    const finallyRecords = records?.filter((one) => one.status === 'mediating');
+    openApplyExtension(true, finallyRecords);
   };
 
   /** 打开冻结 */
   const handleOpenFreeze = () => {
-    openFreeze(true, {});
+    openFreeze(true, records);
   };
 
-  const handleAdd = () => {
-    console.log('handleAdd');
-    go(`/case/add`);
+  /** 打开打标 */
+  const handleOpenSetTag = () => {
+    openSetTag(true, records);
   };
+
+  const handleGoDetail = (record) => {
+    go(`/case/list/detail/${record.id}`);
+  };
+
+  // table 操作按钮
+  const handleAction = (action, record) => {
+    // 案件确认
+    if (action.code === 'lawsuit_confirm') {
+      handleOpenCaseConfirm([record]);
+    }
+    // 案件指派
+    if (action.code === 'lawsuit_assign') {
+      handleOpenCaseAssign([record]);
+    }
+    // 申请展期
+    if (action.code === 'lawsuit_apply_extend_deadline') {
+      handleOpenCaseExtension([record]);
+    }
+
+    // 编辑
+    if (action.code === 'lawsuit_update') {
+      go(`/case/list/add?id=${record.id}`);
+    }
+  };
+  const formConfig = ref(getFormConfig({ refresh, simpleUserList: simpleUserList.list }));
+  watch(
+    () => simpleUserList.list,
+    () => {
+      formConfig.value = getFormConfig({ refresh, simpleUserList: simpleUserList.list });
+    },
+  );
+
+  const rowSelection = {
+    type: 'checkbox',
+    onChange: (selectedRowKeys, selectedRows) => {
+      records.value = selectedRows;
+    },
+    selectedRowKeys: records.value.map((item) => item.id),
+  };
+
+  const [registerTable, { reload }] = useTable({
+    api: async (params) => {
+      const { page, ...rest } = params;
+      const res = await lawsuitQueryPage({
+        ...rest,
+        pageNo: page,
+      });
+      return {
+        items: res?.list,
+        total: res?.total,
+      };
+    },
+    columns: getColumns({
+      handleGoDetail,
+      permissions: userInfo.value.permissions,
+      handleAction,
+    }),
+    useSearchForm: true,
+    formConfig: formConfig.value,
+    showTableSetting: false,
+    tableSetting: { fullScreen: true },
+    beforeFetch: (params) => {
+      delete params.count;
+      return params;
+    },
+    showIndexColumn: false,
+    rowKey: 'id',
+    rowSelection: rowSelection,
+    searchInfo: {
+      count: count.value,
+    },
+    showSelectionBar: false, // 显示多选状态栏
+  });
+
+  watch(
+    () => count.value,
+    () => {
+      reload();
+      // 重置选中的数据
+      records.value = [];
+    },
+  );
+
+  const handleAdd = () => {
+    go(`/case/list/add`);
+  };
+
   const handleImport = () => {
     console.log('handleImport');
   };

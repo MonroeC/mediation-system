@@ -26,6 +26,10 @@ function asyncImportRoute(routes: AppRouteRecordRaw[] | undefined) {
     }
     const { component, name } = item;
     const { children } = item;
+    item.meta = {
+      ...(item.meta || {}),
+      title: item.componentName,
+    };
     if (component) {
       const layoutFound = LayoutMap.get(component.toUpperCase());
       if (layoutFound) {
@@ -90,6 +94,7 @@ export function transformObjToRoute<T = AppRouteModule>(routeList: AppRouteModul
         const meta = route.meta || {};
         meta.single = true;
         meta.affix = false;
+        meta.title = route.componentName;
         route.meta = meta;
       }
     } else {

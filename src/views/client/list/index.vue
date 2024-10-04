@@ -1,37 +1,39 @@
 <template>
-  <BasicTable @register="registerTable">
-    <template #form-custom> custom-slot </template>
-    <template #toolbar>
-      <Space>
-        <Button type="primary" @click="handleOpenAddClient">+ 新增委案方</Button>
-        <Button @click="getFormValues">打标</Button>
-        <Dropdown>
-          <template #overlay>
-            <Menu @click="getFormValues">
-              <MenuItem key="1" @click="handleOpenFreeze">冻结</MenuItem>
-              <MenuItem key="2" @click="handleOpenUnFreeze">解冻</MenuItem>
-            </Menu>
-          </template>
-          <Button>冻结</Button>
-        </Dropdown>
-      </Space>
-    </template>
-    <template #bodyCell="{ column, record }">
-      <template v-if="column.key === 'action'">
-        <TableAction
-          :actions="[
-            {
-              label: '编辑',
-              onClick: handleEdit.bind(null, record),
-            },
-          ]"
-        />
+  <div>
+    <BasicTable @register="registerTable">
+      <template #form-custom> custom-slot </template>
+      <template #toolbar>
+        <Space>
+          <Button type="primary" @click="handleOpenAddClient">+ 新增委案方</Button>
+          <Button @click="getFormValues">打标</Button>
+          <Dropdown>
+            <template #overlay>
+              <Menu @click="getFormValues">
+                <MenuItem key="1" @click="handleOpenFreeze">冻结</MenuItem>
+                <MenuItem key="2" @click="handleOpenUnFreeze">解冻</MenuItem>
+              </Menu>
+            </template>
+            <Button>冻结</Button>
+          </Dropdown>
+        </Space>
       </template>
-    </template>
-  </BasicTable>
-  <Freeze @register="registerFreeze" />
-  <UnFreeze @register="registerUnFreeze" />
-  <AddClient @register="registerAddClient" />
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'action'">
+          <TableAction
+            :actions="[
+              {
+                label: '编辑',
+                onClick: handleEdit.bind(null, record),
+              },
+            ]"
+          />
+        </template>
+      </template>
+    </BasicTable>
+    <Freeze @register="registerFreeze" />
+    <UnFreeze @register="registerUnFreeze" />
+    <AddClient @register="registerAddClient" />
+  </div>
 </template>
 <script lang="ts" setup>
   import { BasicTable, useTable, TableAction } from '@/components/Table';

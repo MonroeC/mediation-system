@@ -1,16 +1,22 @@
 import { FormProps, BasicColumn } from '@/components/Table';
 import { getDictTypeByType } from '@/utils/common';
-import {
-  entrustCustomerQuerySimpleListByKeyword,
-  getPartiesSimpleList,
-  listSimpleUserByNickname,
-} from '@/api/sys/common';
+import { Tag, Space } from 'ant-design-vue';
+import { entrustCustomerQuerySimpleListByKeyword, getPartiesSimpleList } from '@/api/sys/common';
 
-export const getColumns: () => BasicColumn[] = () => {
+export const getColumns: ({
+  handleGoDetail,
+  handleSetTagVisible,
+  permissions,
+  handleAction,
+}) => BasicColumn[] = ({ handleGoDetail, handleSetTagVisible }) => {
   return [
     {
       title: '案件名称',
       dataIndex: 'lawsuitName',
+      ellipsis: true,
+      customRender: ({ record }) => {
+        return <a onClick={() => handleGoDetail(record)}>{record?.lawsuitName}</a>;
+      },
     },
     {
       title: '状态',
@@ -36,6 +42,16 @@ export const getColumns: () => BasicColumn[] = () => {
     {
       title: '标签',
       dataIndex: 'tagList',
+      customRender: ({ record }) => {
+        return (
+          <Space>
+            {record.tagList?.map((item) => <Tag key={item}>{item}</Tag>)}
+            {record.buttonList.find((item) => item.code === 'lawsuit_set_tag') && (
+              <Tag onClick={() => handleSetTagVisible(record)}>+打标</Tag>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: '委案方',
@@ -51,13 +67,13 @@ export const getColumns: () => BasicColumn[] = () => {
     },
     {
       title: '委案日期',
-      dataIndex: 'commissionDate',
+      dataIndex: 'entrustDate',
     },
     {
       // 显示佣金比例
       title: '佣金',
       // TODO: 佣金
-      dataIndex: 'commission',
+      dataIndex: 'mediationCommission',
     },
     {
       title: '调解员',
@@ -66,6 +82,7 @@ export const getColumns: () => BasicColumn[] = () => {
     {
       // 备注：显示备注，单行显示，超出…。鼠标停留浮窗显示全部；
       title: '备注',
+      ellipsis: true,
       dataIndex: 'remark',
     },
     {
@@ -73,6 +90,7 @@ export const getColumns: () => BasicColumn[] = () => {
       dataIndex: 'action',
       width: 160,
       fixed: 'right',
+      key: 'action',
     },
   ];
 };
@@ -134,8 +152,8 @@ export const getSearch: () => SearchConfig = () => {
     ],
   };
 };
-console.log(getDictTypeByType('lawsuit_status'), '23');
-export function getFormConfig({ refresh }): Partial<FormProps> {
+export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
+  console.log(simpleUserList, 'simpleUserList11');
   return {
     labelWidth: 80,
     // showActionButtonGroup: false,
@@ -199,7 +217,7 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
         /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: () => entrustCustomerQuerySimpleListByKeyword,
+          api: entrustCustomerQuerySimpleListByKeyword,
           showSearch: true,
           apiSearch: {
             show: true,
@@ -237,7 +255,7 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
       },
       {
         field: `entrustCustomerIdList`,
-        component: 'ApiSelect',
+        component: 'Select',
         label: '调解员',
         colProps: {
           span: 6,
@@ -245,31 +263,17 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
         /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: () => listSimpleUserByNickname,
-          showSearch: true,
-          apiSearch: {
-            show: true,
-            searchName: 'name',
-          },
-          params: {
-            keyword: '',
-          },
-          afterFetch: (list) => {
-            console.log(list, 'list');
-          },
-          resultField: 'list',
-          labelField: 'name',
-          valueField: 'id',
-          immediate: true,
+          options: [{ label: '全部', value: '' }].concat(simpleUserList),
           mode: 'multiple',
           onChange: () => {
             refresh();
           },
+          showSearch: true,
         },
       },
       {
         field: `mediatorChargeIdList`,
-        component: 'ApiSelect',
+        component: 'Select',
         label: '负责人',
         colProps: {
           span: 6,
@@ -277,26 +281,12 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
         /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: () => listSimpleUserByNickname,
-          showSearch: true,
-          apiSearch: {
-            show: true,
-            searchName: 'name',
-          },
-          params: {
-            keyword: '',
-          },
-          afterFetch: (list) => {
-            console.log(list, 'list');
-          },
-          resultField: 'list',
-          labelField: 'name',
-          valueField: 'id',
-          immediate: true,
+          options: simpleUserList,
           mode: 'multiple',
           onChange: () => {
             refresh();
           },
+          showSearch: true,
         },
       },
       {
@@ -309,14 +299,14 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
         /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: () => getPartiesSimpleList,
+          api: getPartiesSimpleList,
           showSearch: true,
           apiSearch: {
             show: true,
             searchName: 'name',
           },
           params: {
-            keyword: '',
+            name: '',
           },
           afterFetch: (list) => {
             console.log(list, 'list');
@@ -353,7 +343,7 @@ export function getFormConfig({ refresh }): Partial<FormProps> {
         colProps: {
           span: 6,
         },
-        // labelWidth: 100,
+        defaultValue: false,
         componentProps: {
           onChange: () => {
             refresh();

@@ -23,23 +23,23 @@ const management: AppRouteModule = {
       },
     },
     {
-      path: 'detail/:id',
+      path: 'list/detail/:id',
       name: '案件详情',
       component: () => import('@/views/case/detail/index.vue'),
       meta: {
         title: '案件详情',
         currentActiveMenu: '/case',
-        realPath: '/case/detail',
+        realPath: '/case/list/detail',
       },
     },
     {
-      path: 'add',
+      path: 'list/add',
       name: '新增案件',
       component: () => import('@/views/case/add/index.vue'),
       meta: {
         title: '新增案件',
         currentActiveMenu: '/case',
-        realPath: '/case/add',
+        realPath: '/case/list/add',
       },
     },
   ],

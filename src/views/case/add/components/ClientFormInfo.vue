@@ -13,7 +13,7 @@
         <Switch @change="(v) => (entrustAgentEnabled = v)" :checked="entrustAgentEnabled" />
       </Flex>
     </template>
-    <BasicForm @register="registerEntrustAgentForm" />
+    <BasicForm v-show="entrustAgentEnabled" @register="registerEntrustAgentForm" />
   </CollapseContainer>
   <CollapseContainer>
     <template #title>
@@ -22,9 +22,9 @@
         <Switch @change="(v) => (entrustSenderEnabled = v)" :checked="entrustSenderEnabled" />
       </Flex>
     </template>
-    <BasicForm @register="registerEntrustSenderForm" />
+    <BasicForm v-show="entrustSenderEnabled" @register="registerEntrustSenderForm" />
   </CollapseContainer>
-  <AddClient @register="registerAddClient" />
+  <AddClient @register="registerAddClient" :cancel="handleCloseAddClient" />
 </template>
 <script lang="ts" setup>
   import { BasicForm, useForm } from '@/components/Form';
@@ -33,7 +33,7 @@
   import { useModal } from '@/components/Modal';
   import AddClient from '@/views/client/list/components/addClient.vue';
 
-  import { ref } from 'vue';
+  import { ref, defineProps, watch } from 'vue';
   import {
     entrustAgentFormSchema,
     entrustSenderFormSchema,
@@ -52,6 +52,25 @@
       span: 24,
     },
   };
+  const props = defineProps({
+    data: { type: Object },
+    editMode: { type: String },
+  });
+
+  watch(
+    () => props.data,
+    (val) => {
+      if (val) {
+        clientInfoSetFieldsValue(val);
+        entrustAgentSetFieldsValue(val);
+        entrustSenderSetFieldsValue(val);
+        entrustAgentEnabled.value = val.entrustAgentEnabled;
+        entrustSenderEnabled.value = val.entrustSenderEnabled;
+      }
+    },
+    { immediate: true },
+  );
+
   /** 代理人是否开启 */
   const entrustAgentEnabled = ref(true);
   /** 被送达人是否开启 */
@@ -91,6 +110,25 @@
   const handleOpenAddClient = ({ type }) => {
     openAddClient(true, { type });
   };
+
+  /** 关闭委案方弹窗 */
+  const handleCloseAddClient = () => {
+    openAddClient(false);
+  };
+
+  const getFormData = async () => {
+    const clientInfo = await clientInfoValidateFields();
+    const entrustAgentInfo = await entrustAgentValidateFields();
+    const entrustSenderInfo = await entrustSenderValidateFields();
+    return Promise.resolve({
+      ...clientInfo,
+      ...entrustAgentInfo,
+      ...entrustSenderInfo,
+      entrustAgentEnabled: entrustAgentEnabled.value,
+      entrustSenderEnabled: entrustSenderEnabled.value,
+    });
+  };
+  defineExpose({ getFormData });
 </script>
 <style lang="scss" scoped>
   .action {

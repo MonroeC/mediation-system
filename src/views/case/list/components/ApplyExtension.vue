@@ -4,7 +4,6 @@
     @register="register"
     title="申请展期"
     destroyOnClose
-    @visible-change="handleVisibleChange"
     width="600px"
     @ok="handleOk"
   >
@@ -17,33 +16,40 @@
   import { ref } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
+  import { lawsuitApplyExtensionDeadline } from '@/api/biz/case';
+  import { message } from 'ant-design-vue';
+  import moment from 'moment';
 
-  const formData = ref({});
+  const records = ref([]);
+
+  const props = defineProps({
+    ok: { type: Function },
+  });
+
   const schemas: FormSchema[] = [
     {
-      field: 'field1',
+      field: 'entrustDeadline',
       component: 'DatePicker',
       label: '调整委案期限至',
       colProps: {
         span: 22,
       },
       required: true,
+      componentProps: {
+        format: 'YYYY-MM-DD',
+      },
     },
     {
-      field: 'field2',
+      field: 'reason',
       component: 'InputTextArea',
       label: '调整理由',
       colProps: {
         span: 22,
       },
       required: true,
-      defaultValue: '',
     },
   ];
 
-  const props = defineProps({
-    userData: { type: Object },
-  });
   const [registerForm, { validateFields }] = useForm({
     labelWidth: 130,
     schemas,
@@ -53,23 +59,26 @@
     },
   });
 
-  const [register] = useModalInner((data) => {
+  const [register, { closeModal }] = useModalInner((data) => {
     data && onDataReceive(data);
   });
 
   function onDataReceive(data) {
     console.log('Data Received', data);
+    records.value = data;
   }
 
-  function handleVisibleChange(v) {
-    console.log(v, 888);
-    // v && props.userData && nextTick(() => onDataReceive(props.userData));
-  }
-
-  const handleOk = () => {
-    validateFields().then((res) => {
-      console.log(res, 888);
+  const handleOk = async () => {
+    const values = await validateFields();
+    const res = await lawsuitApplyExtensionDeadline({
+      reason: values.reason,
+      lawsuitIdList: records.value.map((item) => item.id),
+      entrustDeadline: moment(values.entrustDeadline).format('YYYY-MM-DD'),
     });
-    console.log(formData, 'modelRef.value');
+    if (res) {
+      message.success('案件指派成功');
+      closeModal?.();
+      props?.ok?.();
+    }
   };
 </script>

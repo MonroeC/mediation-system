@@ -72,7 +72,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { ref } from 'vue';
+  import { ref, onMounted } from 'vue';
   import { Flex, Col, Card, Tag, Input, Divider, Tabs } from 'ant-design-vue';
   import { ScrollContainer } from '@/components/Container';
   import Dropdown from '@/components/Dropdown/src/Dropdown.vue';
@@ -125,6 +125,11 @@
       key: '4',
     },
   ]);
+
+  // 获取链接上的 id 参数
+  onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+  });
 
   /** 编辑和冻结 */
   function handleMenuEvent(menu: any) {

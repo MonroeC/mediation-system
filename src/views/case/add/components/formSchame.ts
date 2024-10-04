@@ -8,12 +8,11 @@ export const baseInfoFormSchema: any = [
     label: '案件名称',
     component: 'Input',
     componentProps: {
-      disabled: true,
       placeholder: '留空提交后自动生成',
     },
   },
   {
-    field: 'phone',
+    field: 'entrustCode',
     label: '委案案号',
     component: 'Input',
     componentProps: {
@@ -25,16 +24,22 @@ export const baseInfoFormSchema: any = [
     field: 'entrustDate',
     label: '委案日期',
     component: 'DatePicker',
+    // componentProps: {
+    //   format: 'YYYY-MM-DD',
+    // },
     required: true,
   },
   {
     field: 'entrustDeadline',
     label: '委案期限',
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
     required: true,
   },
   {
-    field: 'entrustDeadline',
+    field: 'lawsuitType',
     label: '案件类型',
     component: 'Select',
     required: true,
@@ -47,8 +52,9 @@ export const baseInfoFormSchema: any = [
     label: '调解目标',
     component: 'Select',
     // required: true,
+    defaultValue: getDictTypeByType('mediation_target')?.[0]?.value,
     componentProps: {
-      options: getDictTypeByType('lawsuit_type'),
+      options: getDictTypeByType('mediation_target'),
       disabled: true,
     },
   },
@@ -65,8 +71,8 @@ export const baseInfoFormSchema: any = [
     required: true,
     componentProps: {
       addonAfter: '%',
-      min: 0,
-      max: 100,
+      min: 1,
+      max: 99,
     },
   },
   {
@@ -81,17 +87,20 @@ export const baseInfoFormSchema: any = [
   {
     field: 'repaymentLowestDesc',
     label: '最低还款金额',
-    component: 'InputNumber',
+    component: 'Input',
   },
   {
     field: 'repaymentLongnum',
     label: '最长还款期数',
-    component: 'InputNumber',
+    component: 'Input',
   },
   {
     field: 'remark',
     label: '备注',
     component: 'Input',
+    componentProps: {
+      maxLength: 100,
+    },
   },
 ];
 
@@ -101,11 +110,17 @@ export const caseInfoFormSchema: any = [
     field: '逾期日期',
     label: '逾期日期',
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
   },
   {
     field: '开卡日期',
     label: '开卡日期',
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
   },
   {
     field: '卡号',
@@ -139,6 +154,7 @@ export const caseInfoFormSchema: any = [
       },
     ],
   },
+  // TODO:真账号：此字段仅支持平安银行，默认不展示此项，通过填写的信用卡号判断是否为平安银行，是则展示此项字段且为必填项；
   {
     field: '真账号',
     label: '真账号',
@@ -162,13 +178,15 @@ export const caseInfoFormSchema: any = [
     component: 'Select',
     componentProps: {
       options: getDictTypeByType('lawsuit_type'),
-      disabled: true,
     },
   },
   {
     field: '激活日期',
     label: '激活日期',
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
   },
   {
     field: '案件编号',
@@ -188,7 +206,7 @@ export const caseInfoFormSchema: any = [
   {
     field: '用印时间',
     label: '用印时间',
-    component: 'Input',
+    component: 'DatePicker',
   },
   {
     field: '所函号',
@@ -201,7 +219,6 @@ export const caseInfoFormSchema: any = [
     component: 'Select',
     componentProps: {
       options: getDictTypeByType('lawsuit_gov_place'),
-      disabled: true,
     },
   },
   {
@@ -217,7 +234,7 @@ export const subjectInfoFormSchema: any = [
     field: '本金类型',
     label: '本金类型',
     component: 'Select',
-    // required: true,
+    defaultValue: getDictTypeByType('subject_principal_type')?.[0]?.value,
     componentProps: {
       options: getDictTypeByType('subject_principal_type'),
       disabled: true,
@@ -227,9 +244,9 @@ export const subjectInfoFormSchema: any = [
     field: '开卡日期',
     label: '开卡日期',
     required: true,
-    component: 'Select',
+    component: 'DatePicker',
     componentProps: {
-      options: getDictTypeByType('subject_interestfee_type'),
+      format: 'YYYY-MM-DD',
     },
   },
   {
@@ -371,7 +388,7 @@ export const clientInfoFormSchema: any = [
     required: true,
     componentProps: {
       placeholder: '请选择',
-      api: () => entrustCustomerQuerySimpleListByKeyword,
+      api: entrustCustomerQuerySimpleListByKeyword,
       showSearch: true,
       apiSearch: {
         show: true,
@@ -380,9 +397,7 @@ export const clientInfoFormSchema: any = [
       params: {
         keyword: '',
       },
-      afterFetch: (list) => {
-        console.log(list, 'list');
-      },
+      afterFetch: (list) => {},
       resultField: 'list',
       labelField: 'name',
       valueField: 'id',
@@ -470,18 +485,18 @@ const colProps = {
 
 /** 当事人信息 */
 export const partiesFormSchema: any = [
+  // {
+  //   field: 'name',
+  //   label: '选择当事人',
+  //   component: 'Select',
+  //   colProps,
+  //   required: true,
+  //   componentProps: {
+  //     options: getDictTypeByType('parties_type'),
+  //   },
+  // },
   {
-    field: 'name',
-    label: '选择当事人',
-    component: 'Select',
-    colProps,
-    required: true,
-    componentProps: {
-      options: getDictTypeByType('parties_type'),
-    },
-  },
-  {
-    field: 'name',
+    field: 'partiesType',
     label: '当事人类型',
     component: 'Select',
     required: true,
@@ -491,7 +506,7 @@ export const partiesFormSchema: any = [
     },
   },
   {
-    field: ' name',
+    field: 'name',
     label: '姓名',
     colProps,
     required: true,
@@ -520,6 +535,9 @@ export const partiesFormSchema: any = [
     required: true,
     colProps,
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
   },
   {
     field: 'identityNo',
@@ -533,6 +551,9 @@ export const partiesFormSchema: any = [
     label: '身份证有效期',
     colProps,
     component: 'DatePicker',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
   },
   {
     field: 'phoneNumber',
@@ -548,7 +569,7 @@ export const partiesFormSchema: any = [
     component: 'Input',
   },
   {
-    field: 'homeAddress',
+    field: 'registrationAddress',
     label: '户籍地址',
     required: true,
     colProps,

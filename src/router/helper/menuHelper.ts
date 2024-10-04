@@ -60,13 +60,32 @@ export function transformRouteToMenu(routeModList: AppRouteModule[], routerMappi
   // 提取树指定结构
   const list = treeMap(routeList, {
     conversion: (node: AppRouteRecordRaw) => {
-      const { meta: { hideMenu = false } = {}, name } = node;
+      const { meta: { hideMenu = false } = {}, name, visible } = node;
+      console.log(
+        node,
+        {
+          ...(node.meta || {}),
+          meta: {
+            ...node.meta,
+            title: node.name,
+            icon: node.icon,
+          },
+          name,
+          hideMenu: !visible,
+          path: node.path,
+          ...(node.redirect ? { redirect: node.redirect } : {}),
+        },
+        'node',
+      );
 
       return {
         ...(node.meta || {}),
-        meta: node.meta,
+        meta: {
+          ...node.meta,
+          name: node.name,
+        },
         name,
-        hideMenu,
+        hideMenu: !visible,
         path: node.path,
         ...(node.redirect ? { redirect: node.redirect } : {}),
       };
