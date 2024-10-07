@@ -1,9 +1,10 @@
 <template>
   <Description
+    v-bind="$attrs"
     :labelStyle="{ width: '90px' }"
     :bordered="false"
     :column="1"
-    :data="data"
+    :data="detail"
     :schema="schema"
     :contentStyle="{ color: '#666' }"
   />
@@ -11,13 +12,14 @@
 
 <script lang="ts" setup>
   import Description from '@/components/Description/src/Description.vue';
-  import { partiesFormSchema } from '@/views/case/add/components/formSchame';
   import { defineProps } from 'vue';
+  import { entrustAgentFormSchema } from '@/views/case/add/components/formSchame';
 
-  const props = defineProps({
-    data: { type: Object },
+  defineProps({
+    detail: { type: Object },
   });
-  const schema = partiesFormSchema?.map((item) => ({
+
+  const schema = entrustAgentFormSchema?.map((item) => ({
     field: item.field,
     label: item.label,
   }));

@@ -76,7 +76,7 @@
       entrustDeadline: moment(values.entrustDeadline).format('YYYY-MM-DD'),
     });
     if (res) {
-      message.success('案件指派成功');
+      message.success('案件申请展期成功！');
       closeModal?.();
       props?.ok?.();
     }

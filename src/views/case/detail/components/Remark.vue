@@ -2,58 +2,39 @@
   <BasicModal
     v-bind="$attrs"
     @register="register"
-    title="打标"
+    title="备注"
     destroyOnClose
     width="500px"
     @ok="handleOk"
   >
     <div class="pt-3px pr-3px">
-      选择或输入标签
       <BasicForm @register="registerForm" :layout="'vertical'" />
     </div>
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { ref, onMounted } from 'vue';
+  import { ref } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
-  import { lawsuitSetTag, getLawsuitTag } from '@/api/biz/case';
+  import { setMediationRemark } from '@/api/biz/case';
   import { message } from 'ant-design-vue';
 
-  const records = ref([]);
+  const lawsuitId = ref([]);
   const schemas: FormSchema[] = [
     {
-      field: 'tagList',
-      component: 'Select',
+      field: 'mediationRemark',
+      component: 'InputTextArea',
       label: '',
       colProps: {
         span: 24,
       },
       required: true,
       componentProps: {
-        placeholder: '请输入标签',
-        mode: 'tags',
-        options: [
-          { value: '1', label: '标签1' },
-          { value: '2', label: '标签2' },
-          { value: '3', label: '标签3' },
-        ],
+        placeholder: '请输入',
+        rows: 6,
       },
     },
   ];
-
-  onMounted(async () => {
-    if (records.value?.length < 2) {
-      return;
-    }
-    const res = await getLawsuitTag({
-      lawsuitId: records.value?.[0]?.id,
-    });
-    schemas[0].componentProps.options = res.map((one) => ({
-      value: one.id,
-      label: one.name,
-    }));
-  });
 
   const props = defineProps({
     ok: { type: Function },
@@ -73,19 +54,15 @@
 
   function onDataReceive(data) {
     console.log('Data Received', data);
-    records.value = data;
+    lawsuitId.value = data?.lawsuitId;
   }
 
   const handleOk = async () => {
-    if (!records.value?.length) {
-      message.error('请选择案件');
-      return;
-    }
-    await lawsuitSetTag({
-      lawsuitId: records.value?.map((one) => one.id),
-      tagList: getFieldsValue().tagList,
+    await setMediationRemark({
+      lawsuitId: lawsuitId.value,
+      mediationRemark: getFieldsValue().mediationRemark,
     });
-    message.success('打标成功');
+    message.success('备注成功');
     closeModal?.();
     props?.ok?.();
   };

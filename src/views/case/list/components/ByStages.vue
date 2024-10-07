@@ -12,7 +12,7 @@
   >
     <div class="pt-3px pr-3px">
       <!-- <Description
-        :labelStyle="{ width: '70px' }"
+        :labelStyle="{ width: '90px' }"
         :bordered="false"
         :column="1"
         :data="mockData"

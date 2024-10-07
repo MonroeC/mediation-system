@@ -23,7 +23,7 @@
 
   const stage = ref('');
 
-  const records = ref([]);
+  const record = ref({});
 
   /** 更改分期 */
   const handleChangeStage = (v) => {
@@ -253,7 +253,7 @@
 
   function onDataReceive(data) {
     console.log('Data Received', data);
-    records.value = data;
+    record.value = data;
   }
 
   const handleOk = async () => {
@@ -297,7 +297,7 @@
       };
     }
     await lawsuitApplyClose({
-      lawsuitIdList: records.value.map((item) => item.id),
+      lawsuitId: record.value?.id,
       ...params,
     });
     message.success('申请结案成功');

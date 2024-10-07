@@ -81,7 +81,7 @@
 
         subjectInfo?.list?.forEach((item) => {
           if (item.label === '开卡日期') {
-            item.value = item.value ? moment(item.value) : undefined;
+            item.value = item?.value ? moment(item.value) : undefined;
           }
           subjectInfoSetFieldsValue({
             [item.label]: item.value,

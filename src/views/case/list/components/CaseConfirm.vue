@@ -4,7 +4,6 @@
     @register="register"
     title="案件确认"
     destroyOnClose
-    @visible-change="handleVisibleChange"
     width="600px"
     @ok="handleOk"
   >

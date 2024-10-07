@@ -6,7 +6,7 @@
     <Button v-show="current === 0" type="primary" @click="handleOpenCaseConfirm">确认</Button>
     <Button v-show="current === 1" type="primary" @click="handleOpenCaseAssign">案件指派</Button>
     <Button v-show="current === 2" type="primary" @click="handleOpenCaseClose">结案</Button>
-    <Button v-show="current === 2" type="primary" @click="handleOpenCaseExtension">申请展期</Button>
+    <Button v-show="current === 2" type="default" @click="handleOpenCaseExtension">申请展期</Button>
     <span v-show="current === 4" style="color: #666">xx天xx小时xx分 xx秒（委案期限倒计时）</span>
     <Button v-show="current === 3" type="primary" @click="handleOpenCloseTicket"
       >查看结案工单</Button
@@ -15,8 +15,8 @@
     <Button v-show="current === 4" type="primary" @click="handleByStages">分期详情</Button>
     <span v-show="current === 4" style="color: #666">距离下一个支付时间xxx天</span>
   </Flex>
-  <CaseConfirm @register="registerCaseConfirm" />
-  <CaseAssign @register="registerCaseAssign" />
+  <CaseConfirm @register="registerCaseConfirm" :ok="ok" />
+  <CaseAssign @register="registerCaseAssign" :ok="ok" />
   <CaseClose @register="registerCaseClose" />
   <ApplyExtension @register="registerApplyExtension" />
   <CloseTicket @register="registerCloseTicket" :userData="{ a: 1 }" />
@@ -24,7 +24,7 @@
 </template>
 <script lang="ts" setup>
   import { Button, Flex, Steps } from 'ant-design-vue';
-  import { ref } from 'vue';
+  import { ref, nextTick, defineProps, watch, computed, unref } from 'vue';
   import { useModal } from '@/components/Modal';
   import CaseConfirm from '/@/views/case/list/components/CaseConfirm.vue';
   import CaseAssign from '/@/views/case/list/components/CaseAssign.vue';
@@ -32,6 +32,12 @@
   import ApplyExtension from '/@/views/case/list/components/ApplyExtension.vue';
   import CloseTicket from '/@/views/case/list/components/CloseTicket.vue';
   import ByStages from '/@/views/case/list/components/ByStages.vue';
+  import { useRouter } from 'vue-router';
+
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+
+  const STATUS = ['wait_confirm', 'wait_assign', 'mediating'];
 
   /** 案件确认 */
   const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();
@@ -48,22 +54,36 @@
 
   /** 打开案件确认 */
   const handleOpenCaseConfirm = () => {
-    openCaseConfirm(true, {});
+    openCaseConfirm(true, [
+      {
+        id: computedParams.value.id,
+      },
+    ]);
   };
 
   /** 打开案件指派 */
   const handleOpenCaseAssign = () => {
-    openCaseAssign(true, {});
+    openCaseAssign(true, [
+      {
+        id: computedParams.value.id,
+      },
+    ]);
   };
 
   /** 打开结案 */
   const handleOpenCaseClose = () => {
-    openCaseClose(true, {});
+    openCaseClose(true, {
+      id: computedParams.value.id,
+    });
   };
 
   /** 打开展期 */
   const handleOpenCaseExtension = () => {
-    openApplyExtension(true, {});
+    openApplyExtension(true, [
+      {
+        id: computedParams.value.id,
+      },
+    ]);
   };
 
   /** 打开结算工单 */
@@ -100,7 +120,25 @@
     },
   ];
 
-  const current = ref(4);
+  const current = ref(0);
+
+  const props = defineProps({
+    detail: { type: Object },
+    ok: { type: Function },
+  });
+
+  watch(
+    () => props.detail,
+    (val) => {
+      nextTick(() => {
+        current.value = STATUS.indexOf(val?.status);
+      });
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  );
 </script>
 <style lang="scss" scoped>
   .steps {

@@ -1,52 +1,25 @@
 <template>
   <Description
-    :labelStyle="{ width: '70px' }"
+    :labelStyle="{ width: '90px' }"
     :bordered="false"
     :column="1"
-    :data="mockData"
+    :data="detail"
     :schema="schema"
     :contentStyle="{ color: '#666' }"
-    :title="'委案方信息'"
   />
 </template>
 
 <script lang="ts" setup>
   import Description from '@/components/Description/src/Description.vue';
+  import { defineProps } from 'vue';
+  import { clientSchemas } from '@/views/client/list/components/schemas';
 
-  const mockData = {
-    username: 'test',
-    nickName: 'VB',
-    age: '123',
-    phone: '15695909xxx',
-    email: '190848757@qq.com',
-    addr: '厦门市思明区',
-    sex: '男',
-    certy: '3504256199xxxxxxxxx',
-    tag: 'orange',
-  };
-  const schema = [
-    {
-      field: 'username',
-      label: '用户名',
-    },
-    {
-      field: 'nickName',
-      label: '昵称',
-      render: (curVal, data) => {
-        return `${data.username}-${curVal}`;
-      },
-    },
-    {
-      field: 'phone',
-      label: '联系电话',
-    },
-    {
-      field: 'email',
-      label: '邮箱',
-    },
-    {
-      field: 'addr',
-      label: '地址',
-    },
-  ];
+  defineProps({
+    detail: { type: Object },
+  });
+
+  const schema = clientSchemas?.map((item) => ({
+    field: item.field,
+    label: item.label,
+  }));
 </script>

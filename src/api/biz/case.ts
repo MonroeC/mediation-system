@@ -174,3 +174,11 @@ export function getLawsuitFollowAction(params: { lawsuitId: number }) {
     params,
   });
 }
+
+/** 保存调解笔记 */
+export function setMediationRemark(params: { lawsuitId: number; mediationRemark: string }) {
+  return defHttp.post({
+    url: '/mediation/admin-api/biz/lawsuit/set-mediation-remark',
+    params,
+  });
+}

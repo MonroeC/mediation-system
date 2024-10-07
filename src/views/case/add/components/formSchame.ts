@@ -110,6 +110,7 @@ export const caseInfoFormSchema: any = [
     field: '逾期日期',
     label: '逾期日期',
     component: 'DatePicker',
+    defaultValue: '',
     componentProps: {
       format: 'YYYY-MM-DD',
     },
@@ -118,6 +119,7 @@ export const caseInfoFormSchema: any = [
     field: '开卡日期',
     label: '开卡日期',
     component: 'DatePicker',
+    defaultValue: '',
     componentProps: {
       format: 'YYYY-MM-DD',
     },
@@ -482,7 +484,6 @@ const colProps = {
   md: 12,
   xxl: 6,
 };
-console.log(getDictTypeByType('system_user_sex'), 'getDictTypeByType');
 /** 当事人信息 */
 export const partiesFormSchema: any = [
   // {

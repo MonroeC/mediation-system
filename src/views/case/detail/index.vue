@@ -1,79 +1,93 @@
 <template>
   <div class="page">
-    <Flex :style="{ width: '100%' }" :gap="8">
-      <Col flex="280px">
-        <Card size="small">
-          <Flex justify="space-between" align="start">
-            <Flex @click="handleToList" align="center" gap="4" class="back">
-              <img class="icons" :src="backPng" />
-              返回列表
+    <Spin :spinning="loading">
+      <Flex :style="{ width: '100%' }" :gap="8">
+        <Col flex="280px">
+          <Card size="small">
+            <Flex justify="space-between" align="start">
+              <Flex @click="handleToList" align="center" gap="4" class="back">
+                <img class="icons" :src="backPng" />
+                返回列表
+              </Flex>
+              <!-- <Button type="link"></Button> -->
+              <Dropdown
+                placement="bottom"
+                :trigger="['hover']"
+                :dropMenuList="actionsList"
+                @menu-event="handleMenuEvent"
+                overlayClassName="app-locale-picker-overlay"
+              >
+                . . .
+              </Dropdown>
             </Flex>
-            <!-- <Button type="link"></Button> -->
-            <Dropdown
-              placement="bottom"
-              :trigger="['hover']"
-              :dropMenuList="actionsList"
-              @menu-event="handleMenuEvent"
-              overlayClassName="app-locale-picker-overlay"
-            >
-              . . .
-            </Dropdown>
-          </Flex>
-          <Flex justify="space-between" align="start" class="mb-12">
-            <div>
-              <EllipsisText :maxWidth="220" class="case-title">王五信用卡纠纷王</EllipsisText>
-              <div class="case-mobile">782577551</div>
+            <Flex justify="space-between" align="start" class="mb-12">
+              <div>
+                <EllipsisText :maxWidth="220" class="case-title">{{
+                  detail?.baseInfo?.lawsuitName
+                }}</EllipsisText>
+                <div class="case-mobile">782577551</div>
+              </div>
+              <Tag style="margin-right: 0">{{
+                getDictTypeByType('lawsuit_status')?.find((one) => one.value === detail?.status)
+                  ?.label
+              }}</Tag>
+            </Flex>
+            <div class="mb-12">
+              <Tag v-for="(item, index) in tagList" :key="index">{{ item }}</Tag>
             </div>
-            <Tag style="margin-right: 0">调节中</Tag>
+            <Input
+              class="mb-12"
+              :readonly="true"
+              @click="handleRemark"
+              placeholder="请输入调解诉求备注"
+            />
+            <Flex gap="12">
+              <div class="icons-container">
+                <img class="icons" :src="phonePng" />
+              </div>
+              <div class="icons-container">
+                <img class="icons" :src="envelopePng" />
+              </div>
+            </Flex>
+            <Divider class="mb-8 mt-16" />
+            <ScrollContainer>
+              <Tabs
+                size="small"
+                :tabBarGutter="12"
+                :destroyInactiveTabPane="true"
+                @change="handleChangeTab"
+              >
+                <template v-for="item in baseTabs" :key="item.key">
+                  <TabPane :tab="item.name">
+                    <keep-alive>
+                      <component :is="Components[index]" :detail="detail" />
+                    </keep-alive>
+                  </TabPane>
+                </template>
+              </Tabs>
+            </ScrollContainer>
+          </Card>
+        </Col>
+        <Col flex="1" :style="{ 'min-width': '700px' }">
+          <Card size="small">
+            <Process :detail="detail" :ok="refresh" />
+            <CaseFollowUp />
+          </Card>
+        </Col>
+        <Col flex="350px">
+          <Flex vertical gap="12">
+            <Partys flex="50%" :detail="detail" />
+            <EntrustInfo flex="50%" :detail="detail" />
           </Flex>
-          <div class="mb-12">
-            <Tag>标签 1</Tag>
-            <Tag>标签 2</Tag>
-          </div>
-          <Input
-            class="mb-12"
-            :readonly="true"
-            @click="handleRemark"
-            placeholder="请输入调解诉求备注"
-          />
-          <Flex gap="12">
-            <div class="icons-container">
-              <img class="icons" :src="phonePng" />
-            </div>
-            <div class="icons-container">
-              <img class="icons" :src="envelopePng" />
-            </div>
-          </Flex>
-          <Divider class="mb-8 mt-16" />
-          <ScrollContainer>
-            <Tabs size="small" :tabBarGutter="12">
-              <template v-for="item in baseTabs" :key="item.key">
-                <TabPane :tab="item.name">
-                  <component :is="item.component" />
-                </TabPane>
-              </template>
-            </Tabs>
-          </ScrollContainer>
-        </Card>
-      </Col>
-      <Col flex="1" :style="{ 'min-width': '700px' }">
-        <Card size="small">
-          <Process />
-          <CaseFollowUp />
-        </Card>
-      </Col>
-      <Col flex="350px">
-        <Flex vertical gap="12">
-          <Partys flex="50%" />
-          <ClientInfo flex="50%" />
-        </Flex>
-      </Col>
-    </Flex>
+        </Col>
+      </Flex>
+      <Remark @register="registerOpenRemark" :ok="refresh" />
+    </Spin>
   </div>
 </template>
 <script lang="ts" setup>
-  import { ref, onMounted } from 'vue';
-  import { Flex, Col, Card, Tag, Input, Divider, Tabs } from 'ant-design-vue';
+  import { ref, computed, unref, reactive, markRaw } from 'vue';
+  import { Flex, Col, Card, Tag, Input, Divider, Tabs, Spin } from 'ant-design-vue';
   import { ScrollContainer } from '@/components/Container';
   import Dropdown from '@/components/Dropdown/src/Dropdown.vue';
   import { EllipsisText } from '@/components/EllipsisText';
@@ -82,15 +96,58 @@
   import TargetInfo from './components/TargetInfo.vue';
   import CourtInfo from './components/CourtInfo.vue';
   import CaseFollowUp from './components/CaseFollowUp.vue';
+  import Remark from './components/Remark.vue';
   import Process from './components/Process.vue';
   import Partys from './components/Partys.vue';
-  import ClientInfo from './components/ClientInfo.vue';
   import phonePng from '/resource/icons/phone.png';
+  import { useRouter } from 'vue-router';
+  import { lawsuitDetail, getLawsuitTag } from '@/api/biz/case';
   import envelopePng from '/resource/icons/envelope.png';
   import backPng from '/resource/icons/back.png';
+  import { getDictTypeByType } from '@/utils/common';
+  import { useModal } from '@/components/Modal';
+  import { useRequest } from '@vben/hooks';
+  import EntrustInfo from './components/EntrustInfo.vue';
 
   const TabPane = Tabs.TabPane;
-  const detail = ref<any>({});
+
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+  const detail = reactive<any>({});
+  const tagList = ref<any[]>([]);
+  const index = ref(0);
+
+  const count = ref(0);
+  const refresh = () => {
+    count.value++;
+  };
+
+  const handleChangeTab = (key: string) => {
+    index.value = Number(key);
+  };
+
+  const { loading } = useRequest(() => lawsuitDetail({ lawsuitId: computedParams.value.id }), {
+    ready: !!computedParams.value.id,
+    refreshDeps: [count],
+    onSuccess: async (res) => {
+      console.log(res, 'res');
+      detail.baseInfo = res.baseInfo;
+      detail.buttonList = res.buttonList;
+      detail.courtInfo = res.courtInfo;
+      detail.lawsuitInfo = res.lawsuitInfo;
+      detail.targetInfo = res.targetInfo;
+      detail.partiesList = res.partiesList;
+      detail.status = res.status;
+      detail.subjectInfo = res.subjectInfo;
+      detail.entrustInfo = res.entrustInfo;
+
+      const tagList = await getLawsuitTag({ lawsuitId: computedParams.value.id });
+      tagList.value = tagList;
+    },
+  });
+
+  /** 案件确认 */
+  const [registerOpenRemark, { openModal: openRemark }] = useModal();
 
   const actionsList = [
     {
@@ -103,33 +160,35 @@
     },
   ];
 
-  const baseTabs = ref([
+  const Components = ref<any[]>([
+    markRaw(BasicInfo),
+    markRaw(CaseInfo),
+    markRaw(TargetInfo),
+    markRaw(CourtInfo),
+  ]);
+
+  const baseTabs = reactive([
     {
       name: '基本信息',
-      component: BasicInfo,
-      key: '1',
+      forceRender: true,
+      key: 0,
     },
     {
       name: '案件信息',
-      component: CaseInfo,
-      key: '2',
+      forceRender: true,
+      key: 1,
     },
     {
       name: '标的信息',
-      component: TargetInfo,
-      key: '3',
+      forceRender: true,
+      key: 2,
     },
     {
       name: '法院信息',
-      component: CourtInfo,
-      key: '4',
+      forceRender: true,
+      key: 3,
     },
   ]);
-
-  // 获取链接上的 id 参数
-  onMounted(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-  });
 
   /** 编辑和冻结 */
   function handleMenuEvent(menu: any) {
@@ -144,6 +203,7 @@
   /** 备注 */
   const handleRemark = () => {
     console.log('handleRemark');
+    openRemark(true, { lawsuitId: computedParams.value.id });
   };
 </script>
 <style lang="scss" scoped>

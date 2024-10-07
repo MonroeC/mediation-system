@@ -29,7 +29,7 @@
 <script lang="ts" setup>
   import { BasicForm, useForm } from '@/components/Form';
   import { CollapseContainer } from '@/components/Container';
-  import { Switch, Flex, Button } from 'ant-design-vue';
+  import { Switch, Flex } from 'ant-design-vue';
   import { useModal } from '@/components/Modal';
   import AddClient from '@/views/client/list/components/addClient.vue';
 
