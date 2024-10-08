@@ -194,3 +194,11 @@ export function lawsuitCloseAgree(params: { lawsuitId: number; agree: boolean })
     params,
   });
 }
+
+/** 查询列表筛选标签 */
+export function getTagList(params: { tagName: string }) {
+  return defHttp.get({
+    url: '/mediation/admin-api/biz/lawsuit-query/get-lawsuit-tag-list',
+    params,
+  });
+}

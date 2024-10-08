@@ -13,14 +13,16 @@
             </Flex>
           </template>
           <template #description>
-            <div class="description"> {{ item.title }} </div>
-            <div v-for="subItem in item.infoList">{{ subItem }}</div>
-            <div v-for="subItem in item.tagList"
-              ><Tag>{{ subItem }}</Tag></div
-            >
-            <div v-for="subItem in item.recordContent"
-              ><Tag>{{ subItem }}</Tag></div
-            >
+            <Flex class="description" vertical gap="4">
+              <div>{{ item.title }}</div>
+              <div v-for="subItem in item.infoList">{{ subItem }}</div>
+              <div>
+                <Tag v-for="subItem in item.tagList">{{ subItem }}</Tag>
+              </div>
+              <div v-for="subItem in item.recordContent"
+                ><Tag>{{ subItem }}</Tag></div
+              >
+            </Flex>
           </template>
         </List.Item.Meta>
       </List.Item>

@@ -11,9 +11,11 @@
     <Button v-show="current === 3" type="primary" @click="handleOpenCloseTicket"
       >查看结案工单</Button
     >
-    <Button v-show="current === 4" type="primary" @click="handleResult">查看结算单</Button>
-    <Button v-show="current === 4" type="primary" @click="handleByStages">分期详情</Button>
-    <span v-show="current === 4" style="color: #666">距离下一个支付时间xxx天</span>
+    <Button v-show="[4, 5, 6].includes(current)" type="primary" @click="handleResult"
+      >查看结算单</Button
+    >
+    <Button v-show="current === 6" type="primary" @click="handleByStages">分期详情</Button>
+    <span v-show="current === 6" style="color: #666">距离下一个支付时间xxx天</span>
   </Flex>
   <CaseConfirm @register="registerCaseConfirm" :ok="ok" />
   <CaseAssign @register="registerCaseAssign" :ok="ok" />
@@ -37,7 +39,14 @@
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
 
-  const STATUS = ['wait_confirm', 'wait_assign', 'mediating', 'close_stage'];
+  const STATUS = [
+    'wait_confirm',
+    'wait_assign',
+    'mediating',
+    'close_success',
+    'close_fail',
+    'close_stage',
+  ];
 
   /** 案件确认 */
   const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();

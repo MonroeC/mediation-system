@@ -1,7 +1,6 @@
 import { FormProps, BasicColumn } from '@/components/Table';
 import { getDictTypeByType } from '@/utils/common';
-import { Tag, Space } from 'ant-design-vue';
-import { entrustCustomerQuerySimpleListByKeyword, getPartiesSimpleList } from '@/api/sys/common';
+import { Tag, Flex } from 'ant-design-vue';
 
 export const getColumns: ({
   handleGoDetail,
@@ -44,12 +43,12 @@ export const getColumns: ({
       dataIndex: 'tagList',
       customRender: ({ record }) => {
         return (
-          <Space>
+          <Flex wrap="wrap">
             {record.tagList?.map((item) => <Tag key={item}>{item}</Tag>)}
             {record.buttonList.find((item) => item.code === 'lawsuit_set_tag') && (
               <Tag onClick={() => handleOpenSetTag([record])}>+打标</Tag>
             )}
-          </Space>
+          </Flex>
         );
       },
     },
@@ -210,38 +209,27 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
       },
       {
         field: `entrustCustomerIdList`,
-        component: 'ApiSelect',
+        component: 'Select',
         label: '委案方',
         colProps: {
           span: 6,
         },
-        /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: entrustCustomerQuerySimpleListByKeyword,
-          showSearch: true,
-          apiSearch: {
-            show: true,
-            searchName: 'name',
-          },
-          params: {
-            keyword: '',
-          },
-          afterFetch: (list) => {
-            console.log(list, 'list');
-          },
-          resultField: 'list',
-          labelField: 'name',
-          valueField: 'id',
-          immediate: true,
+          options: simpleUserList,
           mode: 'multiple',
           onChange: () => {
             refresh();
           },
+          filterOption: (input, option) => {
+            return option?.label?.toLowerCase()?.includes(input?.toLowerCase());
+          },
+          optionFilterProp: 'children',
+          showSearch: true,
         },
       },
       {
-        field: `mediatorIdList`,
+        field: `lawsuitType`,
         component: 'Select',
         label: '案件类型',
         colProps: {
@@ -255,20 +243,24 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
         },
       },
       {
-        field: `entrustCustomerIdList`,
+        field: `mediatorIdList`,
         component: 'Select',
         label: '调解员',
         colProps: {
           span: 6,
         },
-        /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          options: [{ label: '全部', value: '' }].concat(simpleUserList),
+          options: simpleUserList,
           mode: 'multiple',
           onChange: () => {
             refresh();
           },
+          filterOption: (input, option) => {
+            console.log(input, option, 'input, option');
+            return option?.label?.toLowerCase()?.includes(input?.toLowerCase());
+          },
+          optionFilterProp: 'children',
           showSearch: true,
         },
       },
@@ -279,7 +271,6 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
         colProps: {
           span: 6,
         },
-        /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
           options: simpleUserList,
@@ -287,39 +278,33 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
           onChange: () => {
             refresh();
           },
+          filterOption: (input, option) => {
+            console.log(input, option, 'input, option');
+            return option?.label?.toLowerCase()?.includes(input?.toLowerCase());
+          },
+          optionFilterProp: 'children',
           showSearch: true,
         },
       },
       {
         field: `partiesList`,
-        component: 'ApiSelect',
+        component: 'Select',
         label: '当事人',
         colProps: {
           span: 6,
         },
-        /** 远程加载数据 */
         componentProps: {
           placeholder: '请选择',
-          api: getPartiesSimpleList,
-          showSearch: true,
-          apiSearch: {
-            show: true,
-            searchName: 'name',
-          },
-          params: {
-            name: '',
-          },
-          afterFetch: (list) => {
-            console.log(list, 'list');
-          },
-          resultField: 'list',
-          labelField: 'name',
-          valueField: 'id',
-          immediate: true,
+          options: simpleUserList,
           mode: 'multiple',
           onChange: () => {
             refresh();
           },
+          filterOption: (input, option) => {
+            return option?.label?.toLowerCase()?.includes(input?.toLowerCase());
+          },
+          optionFilterProp: 'children',
+          showSearch: true,
         },
       },
       {

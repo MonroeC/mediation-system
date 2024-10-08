@@ -17,10 +17,16 @@
   import { ref, onMounted } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
-  import { lawsuitSetTag, getLawsuitTag } from '@/api/biz/case';
+  import { lawsuitSetTag, getLawsuitTag, getTagList } from '@/api/biz/case';
+  import { getDictTypeByType } from '@/utils/common';
+  import { uniqBy } from 'lodash';
+
   import { message } from 'ant-design-vue';
+  import { useRequest } from '@vben/hooks';
 
   const records = ref([]);
+  const visible = ref(false);
+
   const schemas: FormSchema[] = [
     {
       field: 'tagList',
@@ -33,32 +39,22 @@
       componentProps: {
         placeholder: '请输入标签',
         mode: 'tags',
-        options: [
-          { value: '1', label: '标签1' },
-          { value: '2', label: '标签2' },
-          { value: '3', label: '标签3' },
-        ],
+        options: [],
       },
     },
   ];
-
-  onMounted(async () => {
-    if (records.value?.length < 2) {
-      return;
-    }
-    const res = await getLawsuitTag({
-      lawsuitId: records.value?.[0]?.id,
-    });
-    schemas[0].componentProps.options = res.map((one) => ({
-      value: one.id,
-      label: one.name,
-    }));
+  useRequest(getTagList, {
+    ready: visible.value && records.value?.length === 1,
+    refreshDeps: [visible.value, records.value],
+    onSuccess: (res) => {
+      console.log(res, 'res');
+    },
   });
 
   const props = defineProps({
     ok: { type: Function },
   });
-  const [registerForm, { getFieldsValue }] = useForm({
+  const [registerForm, { getFieldsValue, updateSchema }] = useForm({
     labelWidth: 110,
     schemas,
     showActionButtonGroup: false,
@@ -66,14 +62,33 @@
       span: 24,
     },
   });
-
   const [register, { closeModal }] = useModalInner((data) => {
     data && onDataReceive(data);
   });
 
   function onDataReceive(data) {
-    console.log('Data Received', data);
     records.value = data;
+    visible.value = true;
+    const preTags = getDictTypeByType('lawsuit_system_tag');
+    const tagOptions = (data?.length === 1 ? data?.[0].tagList : [])
+      ?.map((one) => ({
+        value: one,
+        label: one,
+      }))
+      .concat(preTags);
+    const defaultValueObj =
+      data?.length === 1
+        ? {
+            defaultValue: (data?.[0].tagList || []).map((one) => one),
+          }
+        : {};
+    updateSchema({
+      field: 'tagList',
+      ...defaultValueObj,
+      componentProps: {
+        options: uniqBy(tagOptions, 'value'),
+      },
+    });
   }
 
   const handleOk = async () => {
@@ -82,7 +97,7 @@
       return;
     }
     await lawsuitSetTag({
-      lawsuitId: records.value?.map((one) => one.id),
+      lawsuitIdList: records.value?.map((one) => one.id),
       tagList: getFieldsValue().tagList,
     });
     message.success('打标成功');

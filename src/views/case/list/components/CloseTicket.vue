@@ -44,6 +44,7 @@
 
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
+  const visible = ref(false);
 
   const { loading, data } = useRequest(
     () =>
@@ -51,8 +52,8 @@
         lawsuitId: computedParams.value.id,
       }),
     {
-      ready: !!computedParams.value.id,
-      refreshDeps: [computedParams.value.id],
+      ready: !!computedParams.value.id && visible.value,
+      refreshDeps: [computedParams.value.id, visible.value],
       onSuccess: (res) => {
         console.log(res, 999);
         title.value =
@@ -70,6 +71,7 @@
 
   const [register, { setTitle }] = useModalInner((data) => {
     console.log(data, 999);
+    visible.value = true;
     data && onDataReceive(data);
   });
 

@@ -33,12 +33,13 @@
               }}</Tag>
             </Flex>
             <div class="mb-12">
-              <Tag v-for="(item, index) in tagList" :key="index">{{ item }}</Tag>
+              <Tag v-for="item in tagLists" :key="item">{{ item }}</Tag>
             </div>
             <Input
               class="mb-12"
               :readonly="true"
               @click="handleRemark"
+              :value="detail.mediationRemark"
               placeholder="请输入调解诉求备注"
             />
             <Flex gap="12">
@@ -114,7 +115,7 @@
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
   const detail = reactive<any>({});
-  const tagList = ref<any[]>([]);
+  const tagLists = ref<any[]>([]);
   const index = ref(0);
 
   const count = ref(0);
@@ -140,9 +141,11 @@
       detail.status = res.status;
       detail.subjectInfo = res.subjectInfo;
       detail.entrustInfo = res.entrustInfo;
+      detail.mediationRemark = res.mediationRemark;
 
       const tagList = await getLawsuitTag({ lawsuitId: computedParams.value.id });
-      tagList.value = tagList;
+      console.log(tagList, 'tagList');
+      tagLists.value = tagList;
     },
   });
 
@@ -202,7 +205,6 @@
 
   /** 备注 */
   const handleRemark = () => {
-    console.log('handleRemark');
     openRemark(true, { lawsuitId: computedParams.value.id });
   };
 </script>

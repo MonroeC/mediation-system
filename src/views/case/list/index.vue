@@ -49,10 +49,14 @@
   import Freeze from '/@/views/case/list/components/Freeze.vue';
   import SetTag from '/@/views/case/list/components/SetTag.vue';
   import ApplyExtension from '/@/views/case/list/components/ApplyExtension.vue';
-  import { lawsuitQueryPage } from '@/api/biz/case';
+  import { lawsuitQueryPage, getTagList } from '@/api/biz/case';
   import { useGo } from '@/hooks/web/usePage';
   import { useUserStore } from '@/store/modules/user';
-  import { listSimpleUserByNickname } from '@/api/sys/common';
+  import {
+    listSimpleUserByNickname,
+    entrustCustomerQuerySimpleListByKeyword,
+    getPartiesSimpleList,
+  } from '@/api/sys/common';
 
   const go = useGo();
   const records = ref([]);
@@ -81,6 +85,7 @@
   });
 
   onMounted(async () => {
+    // 调解员，调节主管
     const res = await listSimpleUserByNickname({
       nickname: '',
     });
@@ -89,6 +94,52 @@
         label: item.nickname,
         value: item.id,
       };
+    });
+
+    // 委案方
+    const res2 = await entrustCustomerQuerySimpleListByKeyword({
+      keyword: '',
+    });
+    const { updateSchema } = getForm();
+    updateSchema({
+      field: `entrustCustomerIdList`,
+      componentProps: {
+        options: res2?.map((item) => {
+          return {
+            label: item.name,
+            value: item.id,
+          };
+        }),
+      },
+    });
+
+    // 当事人
+    const res3 = await getPartiesSimpleList({
+      name: '',
+    });
+    updateSchema({
+      field: `partiesList`,
+      componentProps: {
+        options: res3?.map((item) => {
+          return {
+            label: item.name,
+            value: item.id,
+          };
+        }),
+      },
+    });
+    // 标签
+    const res4 = await getTagList({ tagName: '' });
+    updateSchema({
+      field: `tagList`,
+      componentProps: {
+        options: res4?.map((item) => {
+          return {
+            label: item,
+            value: item,
+          };
+        }),
+      },
     });
   });
 
@@ -165,11 +216,23 @@
       go(`/case/list/add?id=${record.id}`);
     }
   };
-  const formConfig = ref(getFormConfig({ refresh, simpleUserList: simpleUserList.list }));
+
   watch(
     () => simpleUserList.list,
-    () => {
-      formConfig.value = getFormConfig({ refresh, simpleUserList: simpleUserList.list });
+    (val) => {
+      const { updateSchema } = getForm();
+      updateSchema({
+        field: `mediatorIdList`,
+        componentProps: {
+          options: val,
+        },
+      });
+      updateSchema({
+        field: `mediatorChargeIdList`,
+        componentProps: {
+          options: val,
+        },
+      });
     },
   );
 
@@ -181,7 +244,7 @@
     selectedRowKeys: records.value.map((item) => item.id),
   };
 
-  const [registerTable, { reload }] = useTable({
+  const [registerTable, { reload, getForm }] = useTable({
     api: async (params) => {
       const { page, ...rest } = params;
       const res = await lawsuitQueryPage({
@@ -200,7 +263,7 @@
       handleOpenSetTag,
     }),
     useSearchForm: true,
-    formConfig: formConfig.value,
+    formConfig: getFormConfig({ refresh, simpleUserList: simpleUserList.list }),
     showTableSetting: false,
     tableSetting: { fullScreen: true },
     beforeFetch: (params) => {
