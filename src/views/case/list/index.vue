@@ -70,7 +70,6 @@
     return userStore.getUserInfo || {};
   });
 
-  // 下面的方法有错误，麻烦帮忙修改一下
   const actions = computed(() => (record) => {
     const finallyButton = record.buttonList.filter((item) =>
       userInfo.value?.permissions?.includes(item.permission),

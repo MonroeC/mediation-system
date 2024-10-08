@@ -37,7 +37,7 @@
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
 
-  const STATUS = ['wait_confirm', 'wait_assign', 'mediating'];
+  const STATUS = ['wait_confirm', 'wait_assign', 'mediating', 'close_stage'];
 
   /** 案件确认 */
   const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();

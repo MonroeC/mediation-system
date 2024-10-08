@@ -152,7 +152,11 @@ export function lawsuitWorkOrderbyLawsuitId(params: { lawsuitId: number }) {
 }
 
 /** 获得案件工单列表 */
-export function getLawsuitOrderPage(params: { lawsuitId: number }) {
+export function getLawsuitOrderPage(params: {
+  lawsuitId: number;
+  pageNo: number;
+  pageSize: number;
+}) {
   return defHttp.get({
     url: '/mediation/admin-api/biz/lawsuit-query/get-lawsuit-order-page',
     params,
@@ -179,6 +183,14 @@ export function getLawsuitFollowAction(params: { lawsuitId: number }) {
 export function setMediationRemark(params: { lawsuitId: number; mediationRemark: string }) {
   return defHttp.post({
     url: '/mediation/admin-api/biz/lawsuit/set-mediation-remark',
+    params,
+  });
+}
+
+/** 结案审核-同意 */
+export function lawsuitCloseAgree(params: { lawsuitId: number; agree: boolean }) {
+  return defHttp.post({
+    url: '/mediation/admin-api/biz/lawsuit/audit-close',
     params,
   });
 }

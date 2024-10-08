@@ -21,6 +21,27 @@
 <script lang="ts" setup>
   import { List, Flex } from 'ant-design-vue';
   import Icon from '@/components/Icon/Icon.vue';
+  import { getLawsuitMediationAction } from '@/api/biz/case';
+  import { useRequest } from '@vben/hooks';
+  import { useRouter } from 'vue-router';
+  import { computed, unref } from 'vue';
+
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+
+  const { loading, data } = useRequest(
+    () =>
+      getLawsuitMediationAction({
+        lawsuitId: computedParams.value.id,
+      }),
+    {
+      ready: !!computedParams.value.id,
+      refreshDeps: [computedParams.value.id],
+      onSuccess: (res) => {
+        console.log(res);
+      },
+    },
+  );
 
   const cardList = [
     {

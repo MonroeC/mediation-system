@@ -2,7 +2,7 @@
   <BasicModal
     v-bind="$attrs"
     @register="register"
-    title="工单-结案审批"
+    :title="title"
     destroyOnClose
     @visible-change="handleVisibleChange"
     width="400px"
@@ -11,31 +11,64 @@
     cancelText="取消工单"
   >
     <div class="pt-3px pr-3px">
-      <Description
+      <!-- <Description
         :labelStyle="{ width: '90px' }"
         :bordered="false"
         :column="1"
-        :data="mockData"
+        :data="data"
         :schema="schema"
         :contentStyle="{ color: '#666' }"
+      /> -->
+      <component
+        :is="lists[data.auditStatus].cusComponent"
+        :data="data"
+        :otherProps="lists[data.auditStatus].otherProps"
       />
     </div>
     <template #insertFooter>
-      <span class="tip">待李四审核</span>
+      <span class="tip">待{{ data.auditUserName }}审核</span>
     </template>
   </BasicModal>
 </template>
 <script lang="ts" setup>
   import { BasicModal, useModalInner } from '@/components/Modal';
-  import Description from '@/components/Description/src/Description.vue';
+  import { lawsuitWorkOrderbyLawsuitId, lawsuitCloseAgree } from '@/api/biz/case';
+  import { useRequest } from '@vben/hooks';
+  import { useRouter } from 'vue-router';
+  import { computed, unref, ref } from 'vue';
+  import { getDictTypeByType } from '@/utils/common';
+  import Success from './TicketApply/Success.vue';
+  import { message } from 'ant-design-vue';
+
+  const title = ref('工单');
+
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+
+  const { loading, data } = useRequest(
+    () =>
+      lawsuitWorkOrderbyLawsuitId({
+        lawsuitId: computedParams.value.id,
+      }),
+    {
+      ready: !!computedParams.value.id,
+      refreshDeps: [computedParams.value.id],
+      onSuccess: (res) => {
+        console.log(res, 999);
+        title.value =
+          getDictTypeByType('order_type')?.find((one) => one.value === res.orderType)?.label +
+          '审批';
+      },
+    },
+  );
 
   const props = defineProps({
     userData: { type: Object },
   });
 
-  console.log(props.userData, 777);
+  // useModalInner 如何修改弹窗标题
 
-  const [register] = useModalInner((data) => {
+  const [register, { setTitle }] = useModalInner((data) => {
     console.log(data, 999);
     data && onDataReceive(data);
   });
@@ -44,64 +77,41 @@
     console.log('Data Received', data);
   }
 
-  const mockData = {
-    username: 'test',
-    nickName: 'VB',
-    age: '123',
-    phone: '15695909xxx',
-    email: '190848757@qq.com',
-    addr: '厦门市思明区',
-    sex: '男',
-    certy: '3504256199xxxxxxxxx',
-    tag: 'orange',
-  };
-  const schema = [
+  const commonSchema1 = [
     {
       field: 'username',
       label: '工单类型',
-    },
-    {
-      field: 'nickName',
-      label: '发起人',
-      render: (curVal, data) => {
-        return `${data.username}-${curVal}`;
+      render: (curVal, record) => {
+        return getDictTypeByType('order_type')?.find((one) => one.value === record.orderType)
+          ?.label;
       },
     },
     {
-      field: 'phone',
+      field: 'createUserName',
+      label: '发起人',
+    },
+    {
+      field: 'createTime',
       label: '创建时间',
     },
     {
-      field: 'email',
+      field: 'lawsuitName',
       label: '案件',
     },
     {
-      field: 'addr',
+      field: 'entrustCode',
       label: '委案编号',
     },
     {
       field: 'addr',
       label: '调解结果',
+      render: (curVal, record) => {
+        return getDictTypeByType('apply_status')?.find((one) => one.value === record.auditStatus)
+          ?.label;
+      },
     },
-    {
-      field: 'addr',
-      label: '支付金额',
-      show: false,
-    },
-    {
-      field: 'addr',
-      label: '期数',
-      show: () => false,
-    },
-    {
-      field: 'addr',
-      label: '支付金额',
-      show: false,
-    },
-    {
-      field: 'addr',
-      label: '支付时间',
-    },
+  ];
+  const commonSchema2 = [
     {
       field: 'addr',
       label: '相关证据',
@@ -112,7 +122,29 @@
     },
   ];
 
-  const handleOk = () => {};
+  const lists = {
+    apply_success: {
+      cusComponent: Success,
+      otherProps: {
+        commonSchema1: commonSchema1,
+        commonSchema2: commonSchema2,
+      },
+    },
+  };
+
+  const { run: lawsuitCloseAgreeRequest } = useRequest(lawsuitCloseAgree, {
+    manual: true,
+    onSuccess: () => {
+      message.success('结案成功');
+    },
+  });
+
+  const handleOk = () => {
+    lawsuitCloseAgreeRequest({
+      lawsuitId: computedParams.value.id,
+      agree: true,
+    });
+  };
   function handleVisibleChange(v) {
     console.log(v, 888);
     // v && props.userData && nextTick(() => onDataReceive(props.userData));
