@@ -37,18 +37,43 @@
   import { BasicModal, useModalInner } from '@/components/Modal';
   // import Description from '@/components/Description/src/Description.vue';
   import { Descriptions, DescriptionsItem } from 'ant-design-vue';
-  import { ref } from 'vue';
+  import { lawsuitWorkOrderbyLawsuitId } from '@/api/biz/case';
+  import { useRouter } from 'vue-router';
+  import { ref, computed, unref, watch } from 'vue';
+  import { useRequest } from '@vben/hooks';
 
-  const props = defineProps({
-    userData: { type: Object },
-  });
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+  const isVisible = ref(false);
 
-  console.log(props.userData, 777);
+  const detail = ref({});
+
+  const { run } = useRequest(
+    () => lawsuitWorkOrderbyLawsuitId({ lawsuitId: computedParams.value.id }),
+    {
+      manual: true,
+      ready: !!computedParams.value.id,
+      refreshDeps: [computedParams.value.id],
+      onSuccess: (res) => {
+        detail.value = res;
+      },
+    },
+  );
 
   const [register] = useModalInner((data) => {
     console.log(data, 999);
+    isVisible.value = true;
+    console.log(isVisible.value, computedParams.value.id, 889);
+    run();
     data && onDataReceive(data);
   });
+
+  watch(
+    () => isVisible.value,
+    (val) => {
+      console.log(val, 999);
+    },
+  );
 
   function onDataReceive(data) {
     console.log('Data Received', data);
@@ -70,7 +95,6 @@
   const handleOk = () => {};
   function handleVisibleChange(v) {
     console.log(v, 888);
-    // v && props.userData && nextTick(() => onDataReceive(props.userData));
   }
 </script>
 <style lang="scss" scoped>

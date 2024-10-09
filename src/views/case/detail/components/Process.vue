@@ -3,10 +3,18 @@
     <Steps.Step v-for="item in steps" :key="item.title" :title="item.title" />
   </Steps>
   <Flex gap="12" class="action" align="center">
-    <Button v-show="current === 0" type="primary" @click="handleOpenCaseConfirm">确认</Button>
-    <Button v-show="current === 1" type="primary" @click="handleOpenCaseAssign">案件指派</Button>
+    <Button
+      v-for="item in allButtonLists"
+      :type="item.type || 'primary'"
+      :key="item.code"
+      @click="() => handleClick(item.code)"
+    >
+      {{ item.name }}
+    </Button>
+    <!-- <Button v-show="current === 0" type="primary" @click="handleOpenCaseConfirm">确认</Button>
+    <Button v-show="current === 1" type="primary" @click="handleOpenCaseAssign">案件指派</Button> -->
     <Button v-show="current === 2" type="primary" @click="handleOpenCaseClose">结案</Button>
-    <Button v-show="current === 2" type="default" @click="handleOpenCaseExtension">申请展期</Button>
+    <!-- <Button v-show="current === 2" type="default" @click="handleOpenCaseExtension">申请展期</Button>
     <span v-show="current === 4" style="color: #666">xx天xx小时xx分 xx秒（委案期限倒计时）</span>
     <Button v-show="current === 3" type="primary" @click="handleOpenCloseTicket"
       >查看结案工单</Button
@@ -15,14 +23,14 @@
       >查看结算单</Button
     >
     <Button v-show="current === 6" type="primary" @click="handleByStages">分期详情</Button>
-    <span v-show="current === 6" style="color: #666">距离下一个支付时间xxx天</span>
+    <span v-show="current === 6" style="color: #666">距离下一个支付时间xxx天</span> -->
   </Flex>
   <CaseConfirm @register="registerCaseConfirm" :ok="ok" />
   <CaseAssign @register="registerCaseAssign" :ok="ok" />
-  <CaseClose @register="registerCaseClose" />
-  <ApplyExtension @register="registerApplyExtension" />
-  <CloseTicket @register="registerCloseTicket" :userData="{ a: 1 }" />
-  <ByStages @register="registerByStages" />
+  <CaseClose @register="registerCaseClose" :ok="ok" />
+  <ApplyExtension @register="registerApplyExtension" :ok="ok" />
+  <CloseTicket @register="registerCloseTicket" :ok="ok" />
+  <ByStages @register="registerByStages" :ok="ok" />
 </template>
 <script lang="ts" setup>
   import { Button, Flex, Steps } from 'ant-design-vue';
@@ -34,10 +42,27 @@
   import ApplyExtension from '/@/views/case/list/components/ApplyExtension.vue';
   import CloseTicket from '/@/views/case/list/components/CloseTicket.vue';
   import ByStages from '/@/views/case/list/components/ByStages.vue';
+  import { useUserStore } from '@/store/modules/user';
   import { useRouter } from 'vue-router';
 
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
+
+  const props = defineProps({
+    detail: { type: Object },
+    ok: { type: Function },
+  });
+
+  const otherButton = [
+    'lawsuit_update',
+    'lawsuit_set_tag',
+    'lawsuit_freeze',
+    'lawsuit_call',
+    'lawsuit_sms',
+    'lawsuit_mediation_remark',
+  ];
+
+  const allButtonLists = ref([]);
 
   const STATUS = [
     'wait_confirm',
@@ -47,6 +72,11 @@
     'close_fail',
     'close_stage',
   ];
+
+  const userStore = useUserStore();
+  const userInfo = computed(() => {
+    return userStore.getUserInfo || {};
+  });
 
   /** 案件确认 */
   const [registerCaseConfirm, { openModal: openCaseConfirm }] = useModal();
@@ -111,6 +141,22 @@
     openByStages(true, {});
   };
 
+  const clickMap = {
+    lawsuit_confirm: handleOpenCaseConfirm,
+    lawsuit_assign: handleOpenCaseAssign,
+    lawsuit_apply_extend_deadline: handleOpenCaseExtension,
+    // TODO 结案
+    /** 分期详情 */
+    lawsuit_view_close_stage: handleByStages,
+    close_fail: 'handleOpenCaseClose',
+    close_stage: 'handleOpenCaseClose',
+  };
+
+  const handleClick = (code) => {
+    console.log(code);
+    clickMap[code]();
+  };
+
   const steps = [
     {
       title: '新建',
@@ -131,15 +177,22 @@
 
   const current = ref(0);
 
-  const props = defineProps({
-    detail: { type: Object },
-    ok: { type: Function },
-  });
-
   watch(
     () => props.detail,
     (val) => {
       nextTick(() => {
+        // 后端返回的可操作的按钮
+        allButtonLists.value = val?.buttonList?.filter((item) => !otherButton.includes(item.code));
+        // 增加权限过滤可操作的按钮
+        allButtonLists.value = allButtonLists?.value?.filter((item) =>
+          userInfo.value?.permissions?.includes(item.permission),
+        );
+        allButtonLists?.value?.forEach((item) => {
+          if (item.code === 'lawsuit_apply_extend_deadline') {
+            item.type = 'default';
+          }
+        });
+        allButtonLists.value;
         current.value = STATUS.indexOf(val?.status);
       });
     },

@@ -135,7 +135,7 @@ export function getLawsuitTag(params: { lawsuitId: number }) {
   });
 }
 
-/** 查看案件工单： 穿案件工单 id */
+/** 查看案件工单： 传案件工单 id */
 export function lawsuitWorkOrder(params: { lawsuitOrderId: number }) {
   return defHttp.get({
     url: '/mediation/admin-api/biz/lawsuit-query/get-lawsuit-order',
