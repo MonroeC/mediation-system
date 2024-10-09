@@ -15,7 +15,7 @@ export function uploadApi(
 ) {
   return defHttp.uploadFile<UploadApiResult>(
     {
-      url: uploadUrl,
+      url: '/mediation/admin-api/infra/file/upload-file',
       onUploadProgress,
     },
     params,

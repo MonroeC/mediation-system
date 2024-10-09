@@ -4,6 +4,7 @@
       <Flex justify="center">
         <Radio.Group @change="handleChangeStep" :buttonStyle="'solid'" :value="step">
           <Radio.Button value="a">案件信息</Radio.Button>
+          <Radio.Button value="d">案件材料</Radio.Button>
           <Radio.Button value="b">委案方信息</Radio.Button>
           <Radio.Button value="c">当事人</Radio.Button>
         </Radio.Group>
@@ -11,6 +12,9 @@
       <div class="content">
         <div size="small" v-show="step === 'a'">
           <CaseFormInfo ref="caseFormRef" :data="baseInfo" :editMode="detail.editMode" />
+        </div>
+        <div size="small" v-show="step === 'd'">
+          <CaseMaterial ref="materialFormRef" :editMode="detail.editMode" />
         </div>
         <div size="small" v-show="step === 'b'">
           <ClientFormInfo
@@ -42,6 +46,7 @@
   import CaseFormInfo from './components/CaseFormInfo.vue';
   import ClientFormInfo from './components/ClientFormInfo.vue';
   import PartiesContainer from './components/PartiesContainer.vue';
+  import CaseMaterial from './components/CaseMaterial.vue';
   import { lawsuitCreate, lawsuitDetail, lawsuitUpdate } from '@/api/biz/case';
   import { useTabs } from '@/hooks/web/useTabs';
   import { ref, onMounted, computed, unref } from 'vue';

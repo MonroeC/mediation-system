@@ -199,9 +199,9 @@ export function getFormConfig({ refresh, simpleUserList }): Partial<FormProps> {
           span: 14,
         },
         labelWidth: 10,
-        defaultValue: 'all',
+        defaultValue: '',
         componentProps: {
-          options: [{ label: '全部', value: 'all' }].concat(getDictTypeByType('lawsuit_status')),
+          options: [{ label: '全部', value: '' }].concat(getDictTypeByType('lawsuit_status')),
           onChange: () => {
             refresh();
           },
