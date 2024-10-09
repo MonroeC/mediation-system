@@ -44,6 +44,7 @@
   import ByStages from '/@/views/case/list/components/ByStages.vue';
   import { useUserStore } from '@/store/modules/user';
   import { useRouter } from 'vue-router';
+  import { getDictTypeByType } from '@/utils/common';
 
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
@@ -157,7 +158,7 @@
     clickMap[code]();
   };
 
-  const steps = [
+  const steps = ref([
     {
       title: '新建',
     },
@@ -173,7 +174,7 @@
     {
       title: '结果',
     },
-  ];
+  ]);
 
   const current = ref(0);
 
@@ -194,6 +195,11 @@
         });
         allButtonLists.value;
         current.value = STATUS.indexOf(val?.status);
+        if (['close_stage']?.includes(val?.status)) {
+          steps.value[4].title = getDictTypeByType('lawsuit_status')?.find(
+            (one) => one.value === val?.status,
+          )?.label;
+        }
       });
     },
     {

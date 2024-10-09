@@ -47,7 +47,7 @@
   onMounted(() => {
     nextTick(() => {
       const divTop = scrollableDiv.value.getBoundingClientRect().top;
-      const height = window.innerHeight - divTop - 46; // 20px 的间距
+      const height = window.innerHeight - divTop - 72; // 20px 的间距
       scrollableDiv.value.style.height = `${height}px`;
       scrollableDiv.value.style.overflowY = 'auto';
     });

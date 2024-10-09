@@ -17,20 +17,21 @@
   import { watch, defineProps, shallowRef, nextTick, onMounted, ref } from 'vue';
   import { baseInfoFormSchema } from '@/views/case/add/components/formSchame';
 
-  const scrollableDiv: any = ref(null);
-
   const data = shallowRef({});
 
   const props = defineProps({
     detail: { type: Object },
   });
 
+  const scrollableDiv: any = ref(null);
   onMounted(() => {
     nextTick(() => {
-      const divTop = scrollableDiv.value.getBoundingClientRect().top;
-      const height = window.innerHeight - divTop - 46; // 20px 的间距
-      scrollableDiv.value.style.height = `${height}px`;
-      scrollableDiv.value.style.overflowY = 'auto';
+      setTimeout(() => {
+        const divTop = scrollableDiv.value.getBoundingClientRect().top;
+        const height = window.innerHeight - divTop - 46; // 20px 的间距
+        scrollableDiv.value.style.height = `${height}px`;
+        scrollableDiv.value.style.overflowY = 'auto';
+      }, 90);
     });
   });
 

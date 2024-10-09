@@ -1,13 +1,15 @@
 <template>
-  <Description
-    v-bind="$attrs"
-    :labelStyle="{ width: '90px' }"
-    :bordered="false"
-    :column="1"
-    :data="data"
-    :schema="schema"
-    :contentStyle="{ color: '#666' }"
-  />
+  <div ref="scrollableDiv" class="scrollable-div">
+    <Description
+      v-bind="$attrs"
+      :labelStyle="{ width: '90px' }"
+      :bordered="false"
+      :column="1"
+      :data="data"
+      :schema="schema"
+      :contentStyle="{ color: '#666' }"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -19,6 +21,15 @@
 
   const props = defineProps({
     detail: { type: Object },
+  });
+  const scrollableDiv: any = ref(null);
+  onMounted(() => {
+    nextTick(() => {
+      const divTop = scrollableDiv.value.getBoundingClientRect().top;
+      const height = window.innerHeight - divTop - 46; // 20px 的间距
+      scrollableDiv.value.style.height = `${height}px`;
+      scrollableDiv.value.style.overflowY = 'auto';
+    });
   });
 
   watch(

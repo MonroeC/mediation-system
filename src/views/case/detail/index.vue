@@ -65,9 +65,7 @@
               >
                 <template v-for="item in baseTabs" :key="item.key">
                   <TabPane :tab="item.name">
-                    <keep-alive>
-                      <component :is="Components[index]" :detail="detail" />
-                    </keep-alive>
+                    <component :is="Components[index]" :detail="detail" />
                   </TabPane>
                 </template>
               </Tabs>
