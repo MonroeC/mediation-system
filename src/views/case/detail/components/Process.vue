@@ -13,7 +13,7 @@
     </Button>
     <!-- <Button v-show="current === 0" type="primary" @click="handleOpenCaseConfirm">确认</Button>
     <Button v-show="current === 1" type="primary" @click="handleOpenCaseAssign">案件指派</Button> -->
-    <Button v-show="current === 2" type="primary" @click="handleOpenCaseClose">结案</Button>
+    <!-- <Button v-show="current === 2" type="primary" @click="handleOpenCaseClose">结案</Button> -->
     <!-- <Button v-show="current === 2" type="default" @click="handleOpenCaseExtension">申请展期</Button>
     <span v-show="current === 4" style="color: #666">xx天xx小时xx分 xx秒（委案期限倒计时）</span>
     <Button v-show="current === 3" type="primary" @click="handleOpenCloseTicket"
@@ -22,8 +22,8 @@
     <Button v-show="[4, 5, 6].includes(current)" type="primary" @click="handleResult"
       >查看结算单</Button
     >
-    <Button v-show="current === 6" type="primary" @click="handleByStages">分期详情</Button>
-    <span v-show="current === 6" style="color: #666">距离下一个支付时间xxx天</span> -->
+    <Button v-show="current === 6" type="primary" @click="handleByStages">分期详情</Button> -->
+    <span v-show="detail?.nextPayDateDesc" style="color: #666">{{ detail?.nextPayDateDesc }}</span>
   </Flex>
   <CaseConfirm @register="registerCaseConfirm" :ok="ok" />
   <CaseAssign @register="registerCaseAssign" :ok="ok" />
@@ -33,7 +33,7 @@
   <ByStages @register="registerByStages" :ok="ok" />
 </template>
 <script lang="ts" setup>
-  import { Button, Flex, Steps } from 'ant-design-vue';
+  import { Button, Flex, Steps, message } from 'ant-design-vue';
   import { ref, nextTick, defineProps, watch, computed, unref } from 'vue';
   import { useModal } from '@/components/Modal';
   import CaseConfirm from '/@/views/case/list/components/CaseConfirm.vue';
@@ -61,6 +61,9 @@
     'lawsuit_call',
     'lawsuit_sms',
     'lawsuit_mediation_remark',
+    'lawsuit_apply_stage',
+    'lawsuit_audit_stage',
+    'lawsuit_audit_close',
   ];
 
   const allButtonLists = ref([]);
@@ -69,6 +72,7 @@
     'wait_confirm',
     'wait_assign',
     'mediating',
+    'closing',
     'close_success',
     'close_fail',
     'close_stage',
@@ -128,12 +132,13 @@
 
   /** 打开结算工单 */
   const handleOpenCloseTicket = () => {
-    openCloseTicket(true, { b: 2 });
+    openCloseTicket(true, {});
   };
 
   /** 查看结算单 */
   const handleResult = () => {
     console.log('查看结算单');
+    message.info('正在努力开发中～');
     // 跳转到结算页面
   };
 
@@ -146,11 +151,12 @@
     lawsuit_confirm: handleOpenCaseConfirm,
     lawsuit_assign: handleOpenCaseAssign,
     lawsuit_apply_extend_deadline: handleOpenCaseExtension,
-    // TODO 结案
+    lawsuit_apply_close: handleOpenCaseClose,
     /** 分期详情 */
     lawsuit_view_close_stage: handleByStages,
-    close_fail: 'handleOpenCaseClose',
-    close_stage: 'handleOpenCaseClose',
+    lawsuit_audit_stage: handleOpenCloseTicket,
+    lawsuit_view_order: handleOpenCloseTicket,
+    lawsuit_view_close_success: handleResult,
   };
 
   const handleClick = (code) => {
@@ -194,7 +200,10 @@
           }
         });
         allButtonLists.value;
-        current.value = STATUS.indexOf(val?.status);
+        current.value = STATUS.indexOf(val?.status) > 4 ? 4 : STATUS.indexOf(val?.status);
+        steps.value[STATUS.indexOf(val?.status)].title = getDictTypeByType('lawsuit_status')?.find(
+          (one) => one.value === val?.status,
+        )?.label;
         if (['close_stage']?.includes(val?.status)) {
           steps.value[4].title = getDictTypeByType('lawsuit_status')?.find(
             (one) => one.value === val?.status,

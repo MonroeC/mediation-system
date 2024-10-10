@@ -11,16 +11,22 @@
 <script lang="ts" setup>
   import Description from '@/components/Description/src/Description.vue';
   import { defineProps } from 'vue';
+  import moment from 'moment';
 
   const schema = [
     {
-      field: 'addr',
+      field: 'payAmount',
       label: '支付金额',
       show: false,
+      render: (cur, val) => `¥${val?.finallyInfo?.payAmount}`,
     },
     {
-      field: 'addr',
+      field: 'payDate',
       label: '支付时间',
+      render: (cur, val) =>
+        val?.finallyInfo?.payDate
+          ? moment(val?.finallyInfo?.payDate).format('YYYY-MM-DD HH:mm:ss')
+          : '',
     },
   ];
 

@@ -18,8 +18,10 @@
   import { BasicForm, FormSchema, useForm, ApiSelect } from '@/components/Form';
   import { RESULT } from '/@/views/case/list/constants';
   import { lawsuitApplyClose } from '@/api/biz/case';
+  import { uploadApi } from '@/api/sys/upload';
   import { message } from 'ant-design-vue';
   import moment from 'moment';
+  import { getDictTypeByType } from '@/utils/common';
 
   const stage = ref('');
 
@@ -67,7 +69,7 @@
     appendSchemaByFieldGroup(fields, 'stage');
     stage.value = v;
   };
-
+  console.log(getDictTypeByType('stage_numbers'), '22');
   const schemas: FormSchema[] = [
     {
       field: 'closeType',
@@ -171,19 +173,7 @@
       },
       required: false,
       componentProps: {
-        options: [
-          { label: 2, value: 2 },
-          { label: 3, value: 3 },
-          { label: 4, value: 4 },
-          { label: 5, value: 5 },
-          { label: 6, value: 6 },
-          { label: 7, value: 7 },
-          { label: 8, value: 8 },
-          { label: 9, value: 9 },
-          { label: 10, value: 10 },
-          { label: 11, value: 11 },
-          { label: 12, value: 12 },
-        ],
+        options: getDictTypeByType('stage_numbers'),
         onChange: handleChangeStage,
       },
       show: ({ model }) => model.closeType === 'stage',
@@ -197,20 +187,33 @@
       },
       defaultValue: [],
       componentProps: {
-        accept: ['png', 'jpeg', 'jpg', 'pdf'],
-        maxSize: 5,
-        maxNumber: 6,
-        api: () => {
-          return Promise.resolve([
-            {
-              name: '图片1',
-              url: 'https://img.yzcdn.cn/vant/leaf.jpg',
-            },
-            {
-              name: '图片2',
-              url: 'https://img.yzcdn.cn/vant/tree.jpg',
-            },
-          ]);
+        resultField: 'data.url',
+        maxSize: 20,
+        maxNumber: 9,
+        multiple: true,
+        accept: ['png', 'jpg', 'jpeg', 'pdf', 'doc', 'docx'],
+        api: (file, progress) => {
+          return new Promise((resolve, reject) => {
+            uploadApi(
+              {
+                ...file,
+                name: 'file',
+              },
+              progress,
+            ).then((uploadApiResponse) => {
+              if (uploadApiResponse?.data?.code === 0) {
+                resolve({
+                  code: 200,
+                  data: {
+                    url: uploadApiResponse.data?.data?.id,
+                  },
+                });
+              } else {
+                message.error('上传失败');
+                reject();
+              }
+            });
+          });
         },
       },
       required: true,

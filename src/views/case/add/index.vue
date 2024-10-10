@@ -59,6 +59,7 @@
   const caseFormRef = ref(null);
   const clientFormRef = ref(null);
   const partiesFormRef = ref(null);
+  const materialFormRef = ref(null);
   const { refreshPage, close, setTitle } = useTabs();
   const detail = ref({});
 
@@ -102,6 +103,7 @@
     const baseInfo = await caseFormRef?.value?.getFormData();
     const entrustInfo = await clientFormRef.value.getFormData();
     const partiesInfo = await partiesFormRef.value.getFormData();
+    const materialInfo = await materialFormRef.value.getFormData();
     const requestFun = computedQuery?.value?.id ? lawsuitUpdate : lawsuitCreate;
     await requestFun({
       baseInfo: baseInfo.baseInfo,
@@ -111,9 +113,9 @@
         ...transformData(baseInfo.courtInfo),
         enabled: baseInfo.enabled,
       },
+      materialAttachmentIdList: materialInfo,
       entrustInfo,
       partiesList: partiesInfo,
-      materialAttachmentIdList: [],
       id: computedQuery?.value?.id,
     });
     message.success('保存成功');

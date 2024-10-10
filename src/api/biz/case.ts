@@ -202,3 +202,29 @@ export function getTagList(params: { tagName: string }) {
     params,
   });
 }
+
+/**
+ * 申请分期结算
+ */
+export function lawsuitApplyStage(params: {
+  lawsuitId: number;
+  stageNum: number;
+  attachmentList: string[];
+  remark?: string;
+  realPayDate: string;
+  realPayAmount: number;
+}) {
+  return defHttp.post({
+    url: '/mediation/admin-api/biz/lawsuit/apply-stage',
+    params,
+  });
+}
+/**
+ * 分期结算审核
+ */
+export function lawsuitStageAudit(params: { lawsuitId: number; agree: boolean; stageNum: number }) {
+  return defHttp.post({
+    url: '/mediation/admin-api/biz/lawsuit/audit-stage',
+    params,
+  });
+}

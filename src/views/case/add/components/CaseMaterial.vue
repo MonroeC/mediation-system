@@ -6,36 +6,38 @@
 
 <script setup lang="ts">
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
-  import { useMessage } from '@/hooks/web/useMessage';
   import { uploadApi } from '@/api/sys/upload';
   import { message } from 'ant-design-vue';
 
-  const { createMessage } = useMessage();
   const schemasCustom: FormSchema[] = [
     {
       field: 'field4',
-      component: 'ImageUpload',
+      component: 'Upload',
       label: '案件相关材料',
       colProps: {
         span: 8,
       },
       componentProps: {
-        resultField: 'data4.url',
+        resultField: 'data.url',
+        maxSize: 20,
+        maxNumber: 9,
+        multiple: true,
+        accept: ['image/*', 'doc', 'docx', 'pdf'],
         api: (file, progress) => {
           return new Promise((resolve, reject) => {
             console.log(file, 'file');
             uploadApi(
               {
                 ...file,
-                name: 'path',
+                name: 'file',
               },
               progress,
             ).then((uploadApiResponse) => {
               if (uploadApiResponse?.data?.code === 0) {
                 resolve({
                   code: 200,
-                  data4: {
-                    url: uploadApiResponse.data.url,
+                  data: {
+                    url: uploadApiResponse.data?.data?.id,
                   },
                 });
               } else {
@@ -48,19 +50,19 @@
       },
     },
   ];
-  const [registerCustom, { getFieldsValue: getFieldsValueCustom }] = useForm({
+
+  const [registerCustom, { validateFields }] = useForm({
     labelWidth: 160,
     schemas: schemasCustom,
     showActionButtonGroup: false,
     actionColOptions: {
       span: 18,
     },
-    submitFunc: () => {
-      return new Promise((resolve) => {
-        console.log(getFieldsValueCustom());
-        resolve();
-        createMessage.success(`请到控制台查看结果`);
-      });
-    },
   });
+
+  const getFormData = async () => {
+    const materialInfo = await validateFields();
+    return Promise.resolve(materialInfo?.field4);
+  };
+  defineExpose({ getFormData });
 </script>

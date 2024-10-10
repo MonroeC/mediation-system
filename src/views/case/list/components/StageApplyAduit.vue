@@ -5,27 +5,29 @@
     :title="title"
     destroyOnClose
     @visible-change="handleVisibleChange"
-    width="500px"
+    width="400px"
+    @ok="handleOk"
     okText="审核"
-    :ok-button-props="{ disabled: !isAudit }"
     cancelText="取消工单"
   >
-    <template #footer>
-      <Flex justify="space-between">
-        <span v-show="isAudit">待 {{ data?.auditUserName }} 审核</span>
-        <Space>
-          <Button @click="handleCancel" key="cancel" :disabled="!isAudit">取消工单</Button>
-          <Button @click="handleOk" key="ok" :disabled="!isAudit" type="primary">审核</Button>
-        </Space>
-      </Flex>
-    </template>
     <div class="pt-3px pr-3px">
+      <!-- <Description
+        :labelStyle="{ width: '90px' }"
+        :bordered="false"
+        :column="1"
+        :data="data"
+        :schema="schema"
+        :contentStyle="{ color: '#666' }"
+      /> -->
       <component
         :is="lists[data?.orderType]?.cusComponent"
-        :data="detail"
+        :data="data"
         :otherProps="lists[data?.orderType]?.otherProps"
       />
     </div>
+    <template #insertFooter>
+      <span class="tip">待{{ data?.auditUserName }}审核</span>
+    </template>
   </BasicModal>
 </template>
 <script lang="ts" setup>
@@ -36,30 +38,14 @@
   import { computed, unref, ref } from 'vue';
   import { getDictTypeByType } from '@/utils/common';
   import Success from './TicketApply/Success.vue';
-  import StageClose from './TicketApply/StageClose.vue';
-  import { message, Button, Flex, Space } from 'ant-design-vue';
-  import { useUserStore } from '@/store/modules/user';
+  import { message } from 'ant-design-vue';
 
   const title = ref('工单');
 
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
 
-  const userStore = useUserStore();
-  const userInfo = computed(() => {
-    return userStore.getUserInfo || {};
-  });
-  const permission = computed(() => {
-    return userInfo.value?.permissions || [];
-  });
-
-  const isAudit = computed(() => {
-    return permission.value.includes('biz:lawsuit:audit-close');
-  });
-
-  const detail = ref({});
-
-  const { loading, data, run } = useRequest(
+  const { data, run } = useRequest(
     () =>
       lawsuitWorkOrderbyLawsuitId({
         lawsuitId: computedParams.value.id,
@@ -70,10 +56,6 @@
       refreshDeps: [computedParams.value.id],
       onSuccess: (res) => {
         console.log(res, 999);
-        detail.value = {
-          ...res,
-          finallyInfo: res.closeSuccessOrder || res.closeStageOrder || res.closeFailOrder,
-        };
         title.value =
           getDictTypeByType('order_type')?.find((one) => one.value === res.orderType)?.label +
           '审批';
@@ -81,7 +63,7 @@
     },
   );
 
-  const [register, { closeModal }] = useModalInner((data) => {
+  const [register] = useModalInner((data) => {
     run();
     data && onDataReceive(data);
   });
@@ -92,7 +74,7 @@
 
   const commonSchema1 = [
     {
-      field: 'orderType',
+      field: 'username',
       label: '工单类型',
       render: (curVal, record) => {
         return getDictTypeByType('order_type')?.find((one) => one.value === record.orderType)
@@ -126,19 +108,17 @@
   ];
   const commonSchema2 = [
     {
-      field: 'attachmentList',
+      field: 'addr',
       label: '相关证据',
-      // render: (cur, val) => ${val?.closeSuccessOrder?.attachmentList},
     },
     {
-      field: 'remark',
+      field: 'addr',
       label: '结案备注',
-      render: (cur, val) => `${val?.finallyInfo?.remark}`,
     },
   ];
 
   const lists = {
-    close_success: {
+    apply_success: {
       cusComponent: Success,
       otherProps: {
         commonSchema1: commonSchema1,
@@ -146,7 +126,7 @@
       },
     },
     close_stage: {
-      cusComponent: StageClose,
+      cusComponent: Success,
       otherProps: {
         commonSchema1: commonSchema1,
         commonSchema2: commonSchema2,
@@ -157,8 +137,7 @@
   const { run: lawsuitCloseAgreeRequest } = useRequest(lawsuitCloseAgree, {
     manual: true,
     onSuccess: () => {
-      message.success('操作成功');
-      closeModal();
+      message.success('结案成功');
     },
   });
 
@@ -168,13 +147,6 @@
       agree: true,
     });
   };
-
-  function handleCancel() {
-    lawsuitCloseAgreeRequest({
-      lawsuitId: computedParams.value.id,
-      agree: false,
-    });
-  }
   function handleVisibleChange(v) {
     console.log(v, 888);
     // v && props.userData && nextTick(() => onDataReceive(props.userData));
