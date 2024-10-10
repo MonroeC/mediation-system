@@ -4,10 +4,10 @@ import { defineStore } from 'pinia';
 import { store } from '@/store';
 import { RoleEnum } from '@/enums/roleEnum';
 import { PageEnum } from '@/enums/pageEnum';
-import { ROLES_KEY, TOKEN_KEY, USER_INFO_KEY } from '@/enums/cacheEnum';
+import { ROLES_KEY, TOKEN_KEY, USER_INFO_KEY, LAST_UPDATE_TIME_KEY } from '@/enums/cacheEnum';
 import { getAuthCache, setAuthCache } from '@/utils/auth';
 import { GetUserInfoModel, LoginParams } from '@/api/sys/model/userModel';
-import { doLogout, getUserInfo, loginApi } from '@/api/sys/user';
+import { doLogout, getUserInfo, loginApi, refreshTokenApi } from '@/api/sys/user';
 import { useI18n } from '@/hooks/web/useI18n';
 import { useMessage } from '@/hooks/web/useMessage';
 import { router } from '@/router';
@@ -23,6 +23,8 @@ interface UserState {
   roleList: RoleEnum[];
   sessionTimeout?: boolean;
   lastUpdateTime: number;
+  // 令牌刷新时间，单位分钟
+  tokenRefreshTime: number;
 }
 
 export const useUserStore = defineStore({
@@ -38,6 +40,8 @@ export const useUserStore = defineStore({
     sessionTimeout: false,
     // Last fetch time
     lastUpdateTime: 0,
+    // 令牌刷新时间，单位分钟
+    tokenRefreshTime: 25,
   }),
   getters: {
     getUserInfo(state): UserInfo {
@@ -54,6 +58,9 @@ export const useUserStore = defineStore({
     },
     getLastUpdateTime(state): number {
       return state.lastUpdateTime;
+    },
+    getCacheLastUpdateTime(): number {
+      return getAuthCache<number>(LAST_UPDATE_TIME_KEY);
     },
   },
   actions: {
@@ -72,6 +79,9 @@ export const useUserStore = defineStore({
     },
     setSessionTimeout(flag: boolean) {
       this.sessionTimeout = flag;
+    },
+    setCacheLastUpdateTime() {
+      setAuthCache(LAST_UPDATE_TIME_KEY, new Date().getTime());
     },
     resetState() {
       this.userInfo = null;
@@ -135,6 +145,8 @@ export const useUserStore = defineStore({
         this.setRoleList([]);
       }
       this.setUserInfo(userInfo);
+      this.setCacheLastUpdateTime();
+      this.refreshToken();
       return userInfo;
     },
     /**
@@ -180,6 +192,40 @@ export const useUserStore = defineStore({
           await this.logout(true);
         },
       });
+    },
+    /**
+     * 刷新令牌
+     */
+    async refreshToken() {
+      let timer: any = null;
+      const tokenRefreshTime = this.tokenRefreshTime;
+      const loginTime = this.getCacheLastUpdateTime;
+      const nowTime = new Date().getTime();
+      const needTime = tokenRefreshTime * 60 * 1000 - (nowTime - loginTime);
+      if (needTime <= 0) {
+        // 重定向到登录页
+        this.logout(true);
+        return;
+      }
+      const needMinute = Math.floor(needTime / 1000 / 60);
+      const needSecond = Math.floor((needTime / 1000) % 60);
+      console.log(`还需要${needMinute}分${needSecond}秒刷新token`);
+      timer = setTimeout(() => {
+        refreshTokenApi()
+          .then((res) => {
+            const { accessToken } = res;
+            this.setToken(accessToken);
+            console.log('刷新Token成功');
+            this.setCacheLastUpdateTime();
+          })
+          .catch(() => {
+            console.error('刷新Token失败');
+            this.logout(true);
+          })
+          .finally(() => {
+            clearTimeout(timer);
+          });
+      }, needTime);
     },
   },
 });
