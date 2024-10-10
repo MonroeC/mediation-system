@@ -19,7 +19,7 @@
   import { BasicForm, FormSchema, useForm } from '@/components/Form';
   import { lawsuitSetTag, getLawsuitTag, getTagList } from '@/api/biz/case';
   import { getDictTypeByType } from '@/utils/common';
-  import { uniqBy } from 'lodash';
+  import { uniqBy } from 'lodash-es';
 
   import { message } from 'ant-design-vue';
   import { useRequest } from '@vben/hooks';

@@ -9,6 +9,7 @@ enum Api {
   GetUserInfo = '/mediation/admin-api/system/auth/get-permission-info',
   GetPermCode = '/getPermCode',
   TestRetry = '/testRetry',
+  RefreshToken = '/admin-api/system/auth/refresh-token',
 }
 
 /**
@@ -52,4 +53,8 @@ export function testRetry() {
       },
     },
   );
+}
+
+export function refreshTokenApi() {
+  return defHttp.post({ url: Api.RefreshToken, params: { refreshToken: 'refreshToken' } });
 }
