@@ -104,6 +104,8 @@ export const useUserStore = defineStore({
         const { accessToken: token } = data;
         // save token
         this.setToken(token);
+        this.setCacheLastUpdateTime();
+
         return this.afterLoginAction(goHome);
       } catch (error) {
         return Promise.reject(error);
@@ -145,7 +147,6 @@ export const useUserStore = defineStore({
         this.setRoleList([]);
       }
       this.setUserInfo(userInfo);
-      this.setCacheLastUpdateTime();
       this.refreshToken();
       return userInfo;
     },
