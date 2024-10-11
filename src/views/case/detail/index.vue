@@ -185,6 +185,7 @@
       detail.subjectInfo = res.subjectInfo;
       detail.entrustInfo = res.entrustInfo;
       detail.mediationRemark = res.mediationRemark;
+      detail.entrustCustomer = res.entrustCustomer;
 
       const tagList = await getLawsuitTag({ lawsuitId: computedParams.value.id as number });
       tagLists.value = tagList;

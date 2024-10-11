@@ -92,6 +92,11 @@
     const parties = await partiesValidateFields();
     return Promise.resolve({
       ...parties,
+
+      identityNoPeriod: parties?.identityNoPeriod
+        ? moment(parties.identityNoPeriod).format('YYYY-MM-DD')
+        : undefined,
+      birthDate: parties?.birthDate ? moment(parties.birthDate).format('YYYY-MM-DD') : undefined,
     });
   };
   defineExpose({ getFormData });

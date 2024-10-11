@@ -13,12 +13,23 @@
 
 <script lang="ts" setup>
   import Description from '@/components/Description/src/Description.vue';
-  import { defineProps, onMounted, nextTick, ref } from 'vue';
+  import { defineProps, onMounted, nextTick, ref, watch } from 'vue';
   import { clientSchemas } from '@/views/client/list/components/schemas';
 
-  defineProps({
+  const props = defineProps({
     detail: { type: Object },
   });
+
+  watch(
+    () => props.detail,
+    (val) => {
+      if (val) {
+        console.log(val, 'val555');
+      }
+    },
+    { immediate: true },
+  );
+  console.log(props.detail, 'val555');
 
   const scrollableDiv: any = ref(null);
 

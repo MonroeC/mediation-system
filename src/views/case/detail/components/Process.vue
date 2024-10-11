@@ -201,9 +201,13 @@
         });
         allButtonLists.value;
         current.value = STATUS.indexOf(val?.status) > 4 ? 4 : STATUS.indexOf(val?.status);
-        steps.value[STATUS.indexOf(val?.status)].title = getDictTypeByType('lawsuit_status')?.find(
-          (one) => one.value === val?.status,
-        )?.label;
+
+        if (steps.value[STATUS.indexOf(val?.status)]) {
+          steps.value[STATUS.indexOf(val?.status)].title = getDictTypeByType(
+            'lawsuit_status',
+          )?.find((one) => one.value === val?.status)?.label;
+        }
+
         if (['close_stage']?.includes(val?.status)) {
           steps.value[4].title = getDictTypeByType('lawsuit_status')?.find(
             (one) => one.value === val?.status,

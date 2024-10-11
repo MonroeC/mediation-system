@@ -24,9 +24,9 @@ export const baseInfoFormSchema: any = [
     field: 'entrustDate',
     label: '委案日期',
     component: 'DatePicker',
-    // componentProps: {
-    //   format: 'YYYY-MM-DD',
-    // },
+    componentProps: {
+      format: 'YYYY-MM-DD',
+    },
     required: true,
   },
   {
@@ -179,7 +179,7 @@ export const caseInfoFormSchema: any = [
     label: '息费暂计日',
     component: 'Select',
     componentProps: {
-      options: getDictTypeByType('lawsuit_type'),
+      options: getDictTypeByType('date_numbers'),
     },
   },
   {
@@ -676,7 +676,7 @@ export const partiesFormSchema: any = [
     colProps,
     component: 'Select',
     componentProps: {
-      options: getDictTypeByType('system_user_marital_status'),
+      options: getDictTypeByType('marital_status'),
     },
   },
   {
@@ -685,7 +685,7 @@ export const partiesFormSchema: any = [
     colProps,
     component: 'Select',
     componentProps: {
-      options: getDictTypeByType('system_user_marital_status'),
+      options: getDictTypeByType('edu_level'),
     },
   },
   {

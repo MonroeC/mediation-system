@@ -1,0 +1,141 @@
+<template>
+  <BasicModal
+    v-bind="$attrs"
+    @register="register"
+    :title="title"
+    destroyOnClose
+    @visible-change="handleVisibleChange"
+    width="400px"
+    @ok="handleOk"
+    okText="审核"
+    cancelText="取消工单"
+  >
+    <div class="pt-3px pr-3px">
+      <Description
+        :labelStyle="{ width: '90px' }"
+        :bordered="false"
+        :column="1"
+        :data="data"
+        :schema="schema"
+        :contentStyle="{ color: '#666' }"
+      />
+    </div>
+    <template #insertFooter>
+      <span class="tip">待{{ data?.auditUserName }}审核</span>
+    </template>
+  </BasicModal>
+</template>
+<script lang="ts" setup>
+  import { BasicModal, useModalInner } from '@/components/Modal';
+  import { lawsuitWorkOrderbyLawsuitId, lawsuitCloseAgree } from '@/api/biz/case';
+  import { useRequest } from '@vben/hooks';
+  import { useRouter } from 'vue-router';
+  import { computed, unref, ref } from 'vue';
+  import { getDictTypeByType } from '@/utils/common';
+  import { message } from 'ant-design-vue';
+  import Description from '@/components/Description/src/Description.vue';
+
+  const title = ref('工单');
+
+  const { currentRoute } = useRouter();
+  const computedParams = computed(() => unref(currentRoute).params);
+
+  const { data, run } = useRequest(
+    () =>
+      lawsuitWorkOrderbyLawsuitId({
+        lawsuitId: computedParams.value.id,
+      }),
+    {
+      manual: true,
+      ready: !!computedParams.value.id,
+      refreshDeps: [computedParams.value.id],
+      onSuccess: (res) => {
+        console.log(res, 999);
+        title.value =
+          getDictTypeByType('order_type')?.find((one) => one.value === res.orderType)?.label +
+          '审批';
+      },
+    },
+  );
+
+  const [register] = useModalInner((data) => {
+    run();
+    data && onDataReceive(data);
+  });
+
+  function onDataReceive(data) {
+    console.log('Data Received', data);
+  }
+
+  const schema = [
+    {
+      field: 'username',
+      label: '工单类型',
+      render: (curVal, record) => {
+        return getDictTypeByType('order_type')?.find((one) => one.value === record.orderType)
+          ?.label;
+      },
+    },
+    {
+      field: 'createUserName',
+      label: '发起人',
+    },
+    {
+      field: 'createTime',
+      label: '创建时间',
+    },
+    {
+      field: 'lawsuitName',
+      label: '案件',
+    },
+    {
+      field: 'entrustCode',
+      label: '委案编号',
+    },
+    {
+      field: 'addr',
+      label: '结算期数',
+    },
+    {
+      field: 'addr',
+      label: '支付金额',
+    },
+    {
+      field: 'addr',
+      label: '支付时间',
+    },
+    {
+      field: 'addr',
+      label: '相关证据',
+    },
+    {
+      field: 'addr',
+      label: '结案备注',
+    },
+  ];
+
+  const { run: lawsuitCloseAgreeRequest } = useRequest(lawsuitCloseAgree, {
+    manual: true,
+    onSuccess: () => {
+      message.success('结案成功');
+    },
+  });
+
+  const handleOk = () => {
+    lawsuitCloseAgreeRequest({
+      lawsuitId: computedParams.value.id,
+      agree: true,
+    });
+  };
+  function handleVisibleChange(v) {
+    console.log(v, 888);
+    // v && props.userData && nextTick(() => onDataReceive(props.userData));
+  }
+</script>
+<style lang="scss" scoped>
+  .tip {
+    position: absolute;
+    left: 20px;
+    line-height: 32px;
+  }
+</style>

@@ -159,7 +159,11 @@
     const subjectInfo = await subjectInfoValidateFields();
     const courtInfo = isCourtInfo.value ? await courtInfoValidateFields() : {};
     return Promise.resolve({
-      baseInfo,
+      baseInfo: {
+        ...baseInfo,
+        entrustDate: moment(baseInfo.entrustDate)?.format('YYYY-MM-DD'),
+        entrustDeadline: moment(baseInfo.entrustDeadline)?.format('YYYY-MM-DD'),
+      },
       lawsuitInfo,
       subjectInfo,
       courtInfo,

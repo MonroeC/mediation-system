@@ -14,8 +14,17 @@
       <Flex justify="space-between">
         <span v-show="isAudit">待 {{ data?.auditUserName }} 审核</span>
         <Space>
-          <Button @click="handleCancel" key="cancel" :disabled="!isAudit">取消工单</Button>
-          <Button @click="handleOk" key="ok" :disabled="!isAudit" type="primary">审核</Button>
+          <Button @click="handleCancel" key="cancel" :disabled="!isAudit" :loading="actionLoading"
+            >取消工单</Button
+          >
+          <Button
+            @click="handleOk"
+            key="ok"
+            :disabled="!isAudit"
+            type="primary"
+            :loading="actionLoading"
+            >审核</Button
+          >
         </Space>
       </Flex>
     </template>
@@ -33,7 +42,7 @@
   import { lawsuitWorkOrderbyLawsuitId, lawsuitCloseAgree } from '@/api/biz/case';
   import { useRequest } from '@vben/hooks';
   import { useRouter } from 'vue-router';
-  import { computed, unref, ref } from 'vue';
+  import { computed, unref, ref, defineProps } from 'vue';
   import { getDictTypeByType } from '@/utils/common';
   import Success from './TicketApply/Success.vue';
   import StageClose from './TicketApply/StageClose.vue';
@@ -59,7 +68,11 @@
 
   const detail = ref({});
 
-  const { loading, data, run } = useRequest(
+  const props = defineProps<{
+    ok: { type: Function };
+  }>();
+
+  const { data, run } = useRequest(
     () =>
       lawsuitWorkOrderbyLawsuitId({
         lawsuitId: computedParams.value.id,
@@ -154,11 +167,12 @@
     },
   };
 
-  const { run: lawsuitCloseAgreeRequest } = useRequest(lawsuitCloseAgree, {
+  const { run: lawsuitCloseAgreeRequest, loading: actionLoading } = useRequest(lawsuitCloseAgree, {
     manual: true,
     onSuccess: () => {
       message.success('操作成功');
       closeModal();
+      props?.ok();
     },
   });
 

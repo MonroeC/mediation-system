@@ -3,7 +3,7 @@
     <Tabs size="small" :tabBarGutter="12">
       <template v-for="item in baseTabs" :key="item.key">
         <TabPane :tab="item.name">
-          <component :is="item.component" :data="item.detail" />
+          <component :is="item.component" :detail="item.detail" />
         </TabPane>
       </template>
     </Tabs>
@@ -35,7 +35,7 @@
     (val) => {
       nextTick(() => {
         console.log(val, 33);
-        baseTabs.value[0].detail = val?.entrustInfo;
+        baseTabs.value[0].detail = val?.entrustCustomer;
         // 代理人开启
         if (val?.entrustInfo?.entrustAgentEnabled) {
           baseTabs.value.push({

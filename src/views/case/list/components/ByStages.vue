@@ -39,8 +39,8 @@
             <div v-show="item.stageApplyStatus === 'applying'"
               >（<span
                 :style="{ color: isAuditStage ? 'blue' : '#666' }"
-                @click="() => handleOpenApplyStatges(item)"
-                >（申请中）</span
+                @click="() => handleOpenAdiutStatges(item)"
+                >申请中</span
               >）
             </div>
             <div v-show="item.stageApplyStatus === 'apply_reject'"
@@ -54,6 +54,7 @@
       </Descriptions>
     </div>
     <ApplyStatges @register="registerApplyStatges" :ok="ok" :lawsuitId="computedParam?.value?.id" />
+    <AuditStage @register="registerAdiutStatges" :ok="ok" :lawsuitId="computedParam?.value?.id" />
   </BasicModal>
 </template>
 <script lang="ts" setup>
@@ -65,11 +66,13 @@
   import { useRouter } from 'vue-router';
   import { ref, computed, unref, watch } from 'vue';
   import { useRequest } from '@vben/hooks';
+  import AuditStage from './Adiut/Stage.vue';
   import moment from 'moment';
   import { useUserStore } from '@/store/modules/user';
 
-  /** 分期详情 */
+  /** 申请分期审核 */
   const [registerApplyStatges, { openModal: openApplyStatges }] = useModal();
+  const [registerAdiutStatges, { openModal: openAdiutStatges }] = useModal();
 
   const { currentRoute } = useRouter();
   const computedParams = computed(() => unref(currentRoute).params);
@@ -111,11 +114,20 @@
   });
 
   const handleOpenApplyStatges = (item) => {
-    console.log(isApplyStage, 9999);
     if (!isApplyStage) {
       return;
     }
     openApplyStatges(true, {
+      itemData: item,
+      data: detail.value,
+    });
+  };
+
+  const handleOpenAdiutStatges = (item) => {
+    if (!isAuditStage) {
+      return;
+    }
+    openAdiutStatges(true, {
       itemData: item,
       data: detail.value,
     });

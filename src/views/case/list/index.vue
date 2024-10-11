@@ -23,7 +23,7 @@
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
-          <TableAction :actions="actions(record)" style="width: 200px" />
+          <TableAction :actions="actions(record)" :style="{ width: '300px' }" />
         </template>
       </template>
     </BasicTable>

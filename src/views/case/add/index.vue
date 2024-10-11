@@ -51,6 +51,7 @@
   import { useTabs } from '@/hooks/web/useTabs';
   import { ref, onMounted, computed, unref } from 'vue';
   import { useRouter } from 'vue-router';
+  import moment from 'moment';
 
   const { currentRoute } = useRouter();
   const computedQuery = computed(() => unref(currentRoute).query);
@@ -88,6 +89,9 @@
     Object.entries(data ?? {}).forEach(([key, value]) => {
       if (value === undefined || value === null) {
         return;
+      }
+      if (['逾期日期', '激活日期', '用印时间', '开卡日期']?.includes(key)) {
+        value = moment(value).format('YYYY-MM-DD');
       }
       result.push({
         label: key,
